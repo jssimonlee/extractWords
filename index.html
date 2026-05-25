@@ -1370,63 +1370,78 @@
             'hogwarts', 'hogsmeade', 'gryffindor', 'slytherin', 'hufflepuff', 'ravenclaw', 'quidditch', 'muggle', 'muggles'
         ]);
 
-        // Simple Lemmatizer Engine
+        // Simple Lemmatizer Engine with Dictionary-Validated Rules
         function lemmatize(word, pos) {
             const w = word.toLowerCase();
             if (w.length <= 2) return w;
 
-            // 0. Safeguard: If the word already exists as-is in our CEFR database, do not chop the trailing "s"!
-            // (e.g. 'always', 'process', 'business' should remain intact, while 'does' matches IRREGULAR_VERBS and goes down)
+            // 1. Check irregulars (unconditionally, ignoring POS tagging mistakes)
+            if (IRREGULAR_VERBS[w]) return IRREGULAR_VERBS[w];
+            if (IRREGULAR_NOUNS[w]) return IRREGULAR_NOUNS[w];
+
+            // 2. Safeguard: If the word already exists as-is in our CEFR database, do not chop it!
             if (cefrDb && cefrDb[w]) {
-                if (!IRREGULAR_VERBS[w] && !IRREGULAR_NOUNS[w]) {
-                    return w;
-                }
+                return w;
             }
 
-            // 1. Check irregulars
-            if (pos === 'VB' && IRREGULAR_VERBS[w]) return IRREGULAR_VERBS[w];
-            if (pos === 'NN' && IRREGULAR_NOUNS[w]) return IRREGULAR_NOUNS[w];
-
-            // 2. Regular verb rules (VB)
-            if (pos === 'VB') {
-                if (w.endsWith('ies')) return w.slice(0, -3) + 'y';
-                if (w.endsWith('es') && (w.endsWith('shes') || w.endsWith('ches') || w.endsWith('sses') || w.endsWith('xes'))) return w.slice(0, -2);
-                if (w.endsWith('ed')) {
-                    if (w.endsWith('ied')) return w.slice(0, -3) + 'y';
-                    if (w.endsWith('eed')) return w.slice(0, -1); // agreed -> agree
-                    // Double consonant removal: stopped -> stop
-                    if (w.length > 5 && w[w.length-3] === w[w.length-4] && 'bdfgklmnprstz'.includes(w[w.length-3])) {
-                        return w.slice(0, -3);
-                    }
-                    // e-ending rule: loved -> love
-                    if (w.endsWith('ated') || w.endsWith('ised') || w.endsWith('ized') || w.endsWith('uced') || w.endsWith('ved') || w.endsWith('sed') || w.endsWith('ced') || w.endsWith('ned')) {
-                        return w.slice(0, -1);
-                    }
-                    return w.slice(0, -2); // played -> play
+            // 3. Regular verb rules (applied to any words safely)
+            if (w.endsWith('ies')) {
+                const candidate = w.slice(0, -3) + 'y';
+                if (!cefrDb || cefrDb[candidate]) return candidate;
+            }
+            if (w.endsWith('es') && (w.endsWith('shes') || w.endsWith('ches') || w.endsWith('sses') || w.endsWith('xes'))) {
+                return w.slice(0, -2);
+            }
+            if (w.endsWith('ed')) {
+                if (w.endsWith('ied')) {
+                    const candidate = w.slice(0, -3) + 'y';
+                    if (!cefrDb || cefrDb[candidate]) return candidate;
                 }
-                if (w.endsWith('ing')) {
-                    if (w.endsWith('ying')) return w.slice(0, -4) + 'y';
-                    if (w.length > 6 && w[w.length-4] === w[w.length-5] && 'bdfgklmnprstz'.includes(w[w.length-4])) {
-                        return w.slice(0, -4);
-                    }
-                    // e-ending drop: loving -> love
-                    if (w.endsWith('ating') || w.endsWith('ising') || w.endsWith('izing') || w.endsWith('ucing') || w.endsWith('ving') || w.endsWith('sing') || w.endsWith('cing') || w.endsWith('ning')) {
-                        return w.slice(0, -3) + 'e';
-                    }
-                    return w.slice(0, -3);
+                if (w.endsWith('eed')) return w.slice(0, -1); // agreed -> agree
+                
+                // Double consonant: stopped -> stop
+                if (w.length > 5 && w[w.length-3] === w[w.length-4] && 'bdfgklmnprstz'.includes(w[w.length-3])) {
+                    const candidate = w.slice(0, -3);
+                    if (!cefrDb || cefrDb[candidate]) return candidate;
                 }
-                if (w.endsWith('s') && !w.endsWith('ss')) {
-                    if (w.endsWith('es')) return w.slice(0, -2);
+                
+                // e-ending rule: loved -> love
+                if (w.endsWith('ated') || w.endsWith('ised') || w.endsWith('ized') || w.endsWith('uced') || w.endsWith('ved') || w.endsWith('sed') || w.endsWith('ced') || w.endsWith('ned')) {
                     return w.slice(0, -1);
                 }
+                
+                const candidate = w.slice(0, -2); // played -> play
+                if (!cefrDb || cefrDb[candidate]) return candidate;
+            }
+            if (w.endsWith('ing')) {
+                if (w.endsWith('ying')) return w.slice(0, -4) + 'y';
+                if (w.length > 6 && w[w.length-4] === w[w.length-5] && 'bdfgklmnprstz'.includes(w[w.length-4])) {
+                    const candidate = w.slice(0, -4);
+                    if (!cefrDb || cefrDb[candidate]) return candidate;
+                }
+                // e-ending drop: loving -> love
+                if (w.endsWith('ating') || w.endsWith('ising') || w.endsWith('izing') || w.endsWith('ucing') || w.endsWith('ving') || w.endsWith('sing') || w.endsWith('cing') || w.endsWith('ning')) {
+                    return w.slice(0, -3) + 'e';
+                }
+                
+                const candidate = w.slice(0, -3);
+                if (!cefrDb || cefrDb[candidate]) return candidate;
             }
 
-            // 3. Regular noun rules (NN)
-            if (pos === 'NN') {
-                if (w.endsWith('sses') || w.endsWith('shes') || w.endsWith('ches') || w.endsWith('xes')) return w.slice(0, -2);
-                if (w.endsWith('ies')) return w.slice(0, -3) + 'y';
-                if (w.endsWith('ves') && (w.endsWith('elves') || w.endsWith('ives') || w.endsWith('aves'))) return w.slice(0, -3) + 'f';
-                if (w.endsWith('s') && !w.endsWith('ss') && !w.endsWith('us') && !w.endsWith('is') && !w.endsWith('as')) return w.slice(0, -1);
+            // 4. Regular Plural / 3rd-person 's' rules
+            if (w.endsWith('s') && !w.endsWith('ss') && !w.endsWith('us') && !w.endsWith('is') && !w.endsWith('as') && !w.endsWith('os')) {
+                if (w.endsWith('es')) {
+                    if (w.endsWith('shes') || w.endsWith('ches') || w.endsWith('sses') || w.endsWith('xes')) {
+                        return w.slice(0, -2);
+                    }
+                    const candidateWithoutEs = w.slice(0, -2);
+                    if (cefrDb && cefrDb[candidateWithoutEs]) return candidateWithoutEs;
+                }
+                
+                const candidateWithoutS = w.slice(0, -1);
+                if (!cefrDb || cefrDb[candidateWithoutS]) {
+                    return candidateWithoutS;
+                }
             }
 
             return w;
