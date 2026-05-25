@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LingoExtractor - 영어 EPUB 중고급 어휘 추출기</title>
+    <title>LingoExtractor - 영어 EPUB/TXT/PDF 중고급 어휘 추출기</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- JSZip & PDF.js CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -294,18 +298,18 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 400px;
+            min-height: 350px;
             text-align: center;
         }
 
         .spinner {
-            width: 64px;
-            height: 64px;
+            width: 54px;
+            height: 54px;
             border: 4px solid rgba(88, 166, 255, 0.1);
             border-left-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
 
         @keyframes spin {
@@ -313,7 +317,7 @@
         }
 
         .loading-title {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 600;
             color: var(--text-bright);
             margin-bottom: 0.5rem;
@@ -321,7 +325,7 @@
 
         .loading-text {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             animation: pulse 1.5s infinite;
         }
 
@@ -409,7 +413,7 @@
             border: 1px solid var(--panel-border);
             background: var(--badge-bg);
             color: var(--text-muted);
-            opacity: 0.45; /* Turn down opacity for unselected/deactivated buttons */
+            opacity: 0.45;
             font-family: 'Outfit', sans-serif;
             font-weight: 600;
             font-size: 0.82rem;
@@ -426,8 +430,8 @@
         .cefr-badge-btn.active {
             border-color: var(--badge-color);
             background: var(--badge-glow);
-            color: var(--badge-color); /* Matches label text color with active CEFR tier color */
-            opacity: 1; /* Fully opaque when selected */
+            color: var(--badge-color);
+            opacity: 1;
             box-shadow: 0 0 12px var(--badge-glow);
         }
 
@@ -436,12 +440,12 @@
             height: 8px;
             border-radius: 50%;
             background: var(--badge-color);
-            opacity: 0.35; /* Fade out dot when level is deselected */
+            opacity: 0.35;
             transition: opacity 0.2s ease;
         }
 
         .cefr-badge-btn.active .cefr-dot {
-            opacity: 1; /* Dot lights up brightly when active */
+            opacity: 1;
         }
 
         /* Frequency slider */
@@ -602,7 +606,7 @@
         .action-btn.btn-primary {
             background: var(--primary-gradient);
             border: none;
-            color: #ffffff !important; /* Forces white text to be highly visible over the contrast gradient */
+            color: #ffffff !important;
             box-shadow: 0 3px 10px rgba(88, 166, 255, 0.15);
         }
 
@@ -611,7 +615,7 @@
         }
 
         .action-btn.btn-primary .btn-icon {
-            fill: #ffffff !important; /* Enforces white icon fill over primary gradient background */
+            fill: #ffffff !important;
         }
 
         .btn-icon {
@@ -699,7 +703,7 @@
         .cefr-c2 { background: rgba(255, 123, 114, 0.15); color: #ffa198; border: 1px solid rgba(255, 123, 114, 0.3); }
         .cefr-u { background: rgba(210, 153, 34, 0.15); color: #f0e68c; border: 1px solid rgba(210, 153, 34, 0.3); }
 
-        /* CEFR Light Mode overrides to maximize legibility & prevent extremely low contrast */
+        /* CEFR Light Mode overrides */
         [data-theme="light"] .cefr-a1 { background: rgba(87, 96, 106, 0.1); color: #47505a; border: 1px solid rgba(87, 96, 106, 0.2); }
         [data-theme="light"] .cefr-a2 { background: rgba(110, 119, 129, 0.1); color: #5e6771; border: 1px solid rgba(110, 119, 129, 0.2); }
         [data-theme="light"] .cefr-b1 { background: rgba(26, 127, 55, 0.1); color: #1a7f37; border: 1px solid rgba(26, 127, 55, 0.2); }
@@ -714,56 +718,9 @@
             color: var(--text-bright);
         }
 
-        /* Korean Translation Column */
-        .translation-cell {
-            position: relative;
-            min-width: 150px;
-        }
-
-        .translate-btn {
-            background: rgba(88, 166, 255, 0.08);
-            border: 1px solid rgba(88, 166, 255, 0.2);
-            color: var(--primary);
-            padding: 0.35rem 0.75rem;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .translate-btn:hover {
-            background: rgba(88, 166, 255, 0.18);
-            border-color: var(--primary);
-        }
-
-        .translation-text {
-            font-weight: 500;
-            color: var(--text-bright);
-            font-size: 0.92rem;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .mini-spinner {
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(88, 166, 255, 0.2);
-            border-left-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 0.5rem;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(2px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         /* Context Column & Accordion */
         .context-cell {
-            max-width: 400px;
+            max-width: 500px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -937,16 +894,6 @@
             font-weight: 700;
         }
 
-        .modal-meaning-box {
-            font-size: 1.15rem;
-            color: var(--text-bright);
-            font-weight: 600;
-            background: rgba(88, 166, 255, 0.05);
-            border: 1px dashed rgba(88, 166, 255, 0.2);
-            padding: 1rem;
-            border-radius: 12px;
-        }
-
         .modal-context-box {
             font-size: 1.05rem;
             line-height: 1.7;
@@ -1081,7 +1028,7 @@
                     <div class="stats-list">
                         <div class="stats-item">
                             <span class="stats-label">파일명</span>
-                            <span id="statFilename" class="stats-value" style="font-size: 0.85rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</span>
+                            <span id="statFilename" class="stats-value" style="font-size: 0.85rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</span>
                         </div>
                         <div class="stats-item">
                             <span class="stats-label">총 문장 수</span>
@@ -1175,7 +1122,7 @@
                         </div>
                         <input type="range" class="custom-range" id="minFreqRange" min="1" max="15" value="1">
                     </div>
-                    <div class="slider-group" style="margin-top: 1.25rem;">
+                    <div class="slider-group" style="margin-top: 1.0rem;">
                         <div class="slider-header">
                             <label for="maxFreqRange">최대 등장 빈도수</label>
                             <div style="display: flex; align-items: center; gap: 0.25rem;">
@@ -1258,7 +1205,7 @@
             <!-- Right Side main list area -->
             <div class="content-panel">
                 <!-- Action bar (Search & Download) -->
-                <div class="action-bar glass-panel" style="padding: 1.25rem;">
+                <div class="action-bar glass-panel" style="padding: 0.75rem;">
                     <div class="search-wrapper">
                         <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                             <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
@@ -1267,10 +1214,6 @@
                     </div>
                     
                     <div class="export-btn-group">
-                        <button class="action-btn" id="btnTranslateVisible">
-                            <svg class="btn-icon" viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
-                            현재 페이지 전체 번역
-                        </button>
                         <button class="action-btn" id="btnExportCSV">
                             <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
                             CSV 파일 내보내기
@@ -1289,9 +1232,8 @@
                             <tr>
                                 <th style="width: 25%">단어 (원형)</th>
                                 <th style="width: 15%; text-align: center;">어휘 등급</th>
-                                <th style="width: 12%; text-align: center;">빈도수</th>
-                                <th style="width: 23%">한국어 뜻</th>
-                                <th style="width: 25%">책 속 예문 (문맥)</th>
+                                <th style="width: 15%; text-align: center;">빈도수</th>
+                                <th style="width: 45%">책 속 예문 (문맥)</th>
                             </tr>
                         </thead>
                         <tbody id="vocabTableBody">
@@ -1332,10 +1274,6 @@
             </div>
             <div class="modal-body">
                 <div class="modal-section">
-                    <span class="modal-label">한국어 번역 뜻</span>
-                    <div id="modalTranslation" class="modal-meaning-box">번역하는 중...</div>
-                </div>
-                <div class="modal-section">
                     <span class="modal-label">책 속 문맥 예문 (Context)</span>
                     <div id="modalContext" class="modal-context-box">...</div>
                 </div>
@@ -1351,8 +1289,196 @@
         <span id="toastText" class="toast-text">알림 메세지</span>
     </div>
 
+    <!-- ----------------------------------------------------------------------------- -->
+    <!-- 100% Client-side Natural Language & Parser Engine -->
+    <!-- ----------------------------------------------------------------------------- -->
     <script>
+        // Set PDF.js worker path
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        // Lemmatizer English Base Conjugations Dictionary
+        const IRREGULAR_VERBS = {
+            'awoke':'awake','awoken':'awake','been':'be','was':'be','were':'be','am':'be','is':'be','are':'be','bore':'bear','borne':'bear',
+            'beat':'beat','beaten':'beat','became':'become','become':'become','began':'begin','begun':'begin','bent':'bend','bereft':'bereave',
+            'besought':'beseech','bet':'bet','bade':'bid','bidden':'bid','bound':'bind','bit':'bite','bitten':'bite','bled':'bleed',
+            'blew':'blow','blown':'blow','broke':'break','broken':'break','bred':'breed','brought':'bring','broadcast':'broadcast',
+            'built':'build','burnt':'burn','burst':'burst','bought':'buy','cast':'cast','caught':'catch','chose':'choose','chosen':'choose',
+            'clung':'cling','came':'come','come':'come','cost':'cost','crept':'creep','cut':'cut','dealt':'deal','dug':'dig',
+            'did':'do','done':'do','does':'do','drew':'draw','drawn':'draw','dreamt':'dream','drank':'drink','drunk':'drink',
+            'drove':'drive','driven':'drive','dwelt':'dwell','ate':'eat','eaten':'eat','fell':'fall','fallen':'fall','fed':'feed',
+            'felt':'feel','fought':'fight','found':'find','fled':'flee','flung':'fling','flew':'fly','flown':'fly','forbade':'forbid',
+            'forbidden':'forbid','forecast':'forecast','foreknew':'foreknow','foreknown':'foreknow','foretold':'foretell',
+            'forgot':'forget','forgotten':'forget','forgave':'forgive','forgiven':'forgive','forsook':'forsake','forsaken':'forsake',
+            'froze':'freeze','frozen':'freeze','got':'get','gotten':'get','gave':'give','given':'give','went':'go','gone':'go',
+            'goes':'go','grew':'grow','grown':'grow','hung':'hang','had':'have','has':'have','heard':'hear','hid':'hide',
+            'hidden':'hide','hit':'hit','held':'hold','hurt':'hurt','kept':'keep','knelt':'kneel','knew':'know','known':'know',
+            'laid':'lay','led':'lead','leant':'lean','learnt':'learn','left':'leave','lent':'lend','let':'let','lay':'lie','lain':'lie',
+            'lost':'lose','made':'make','meant':'mean','met':'meet','mowed':'mow','mown':'mow','paid':'pay','put':'put',
+            'read':'read','rid':'rid','rode':'ride','ridden':'ride','rang':'ring','rung':'ring','rose':'rise','risen':'rise',
+            'ran':'run','run':'run','sawed':'saw','sawn':'saw','said':'say','says':'say','saw':'see','seen':'see','sought':'seek',
+            'sold':'sell','sent':'send','set':'set','sewed':'sew','sewn':'sew','shook':'shake','shaken':'shake','shaved':'shave',
+            'shaven':'shave','shear':'shear','shore':'shear','shorn':'shear','shed':'shed','shone':'shine','shot':'shoot',
+            'showed':'show','shown':'show','shrank':'shrink','shrunk':'shrink','shut':'shut','sang':'sing','sung':'sing',
+            'sank':'sink','sunk':'sink','sat':'sit','slew':'slay','slain':'slay','slept':'sleep','slid':'slide','slung':'sling',
+            'slink':'slink','slunk':'slink','slit':'slit','smelt':'smell','sowed':'sow','sown':'sow','spoke':'speak','spoken':'speak',
+            'sped':'speed','spelt':'spell','spent':'spend','spilt':'spill','spun':'spin','spit':'spit','spat':'spit','split':'split',
+            'spoilt':'spoil','spread':'spread','sprang':'spring','sprung':'spring','stood':'stand','stole':'steal','stolen':'steal',
+            'stuck':'stick','stung':'sting','stunk':'sting','strew':'strew','strewn':'strew','strode':'stride','stridden':'stride',
+            'struck':'strike','stricken':'strike','strung':'string','strove':'strive','striven':'strive','swore':'swear',
+            'sworn':'swear','swept':'sweep','swelled':'swell','swollen':'swell','swam':'swim','swum':'swim','swung':'swing',
+            'took':'take','taken':'take','taught':'teach','tore':'tear','torn':'tear','told':'tell','thought':'think',
+            'threw':'throw','thrown':'throw','thrust':'thrust','trod':'tread','trodden':'tread','understood':'understand',
+            'undertook':'undertake','undertaken':'undertake','woke':'wake','woken':'wake','wore':'wear','worn':'wear',
+            'wove':'weave','woven':'weave','wept':'weep','wet':'wet','won':'win','wound':'wind','withdrew':'withdraw',
+            'withdrawn':'withdraw','withstood':'withstand','wrung':'wring','wrote':'write','written':'write'
+        };
+
+        const IRREGULAR_NOUNS = {
+            'children':'child','feet':'foot','geese':'goose','men':'man','mice':'mouse','teeth':'tooth','women':'woman',
+            'people':'person','oxen':'ox','lives':'life','knives':'knife','wives':'wife','leaves':'leaf','thieves':'thief',
+            'selves':'self','shelves':'shelf','calves':'calf','halves':'half','wolves':'wolf','loaves':'loaf','heroes':'hero',
+            'potatoes':'potato','tomatoes':'tomato','criteria':'criterion','phenomena':'phenomenon','data':'datum',
+            'analyses':'analysis','bases':'basis','crises':'crisis','diagnoses':'diagnosis','oases':'oasis','theses':'thesis'
+        };
+
+        const CONTRACTION_GARBAGE = new Set([
+            'nt', 'll', 've', 're', 'd', 'm', 's', 'don', 'doesn', 'didn', 'wasn', 'weren', 'haven', 'hasn', 
+            'hadn', 'isn', 'shouldn', 'wouldn', 'couldn', 'mustn', 'aren', 'needn', 'daren', 'oughtn', 'wo', 'sha'
+        ]);
+
+        const CONJUNCTIONS_IN = new Set([
+            'although', 'though', 'while', 'because', 'if', 'unless', 'since', 
+            'until', 'before', 'after', 'whereas', 'once', 'whether', 'as', 'than'
+        ]);
+
+        // Simple Lemmatizer Engine
+        function lemmatize(word, pos) {
+            const w = word.toLowerCase();
+            if (w.length <= 2) return w;
+
+            // 1. Check irregulars
+            if (pos === 'VB' && IRREGULAR_VERBS[w]) return IRREGULAR_VERBS[w];
+            if (pos === 'NN' && IRREGULAR_NOUNS[w]) return IRREGULAR_NOUNS[w];
+
+            // 2. Regular verb rules (VB)
+            if (pos === 'VB') {
+                if (w.endsWith('ies')) return w.slice(0, -3) + 'y';
+                if (w.endsWith('es') && (w.endsWith('shes') || w.endsWith('ches') || w.endsWith('sses') || w.endsWith('xes'))) return w.slice(0, -2);
+                if (w.endsWith('ed')) {
+                    if (w.endsWith('ied')) return w.slice(0, -3) + 'y';
+                    if (w.endsWith('eed')) return w.slice(0, -1); // agreed -> agree
+                    // Double consonant removal: stopped -> stop
+                    if (w.length > 5 && w[w.length-3] === w[w.length-4] && 'bdfgklmnprstz'.includes(w[w.length-3])) {
+                        return w.slice(0, -3);
+                    }
+                    // e-ending rule: loved -> love
+                    if (w.endsWith('ated') || w.endsWith('ised') || w.endsWith('ized') || w.endsWith('uced') || w.endsWith('ved') || w.endsWith('sed') || w.endsWith('ced') || w.endsWith('ned')) {
+                        return w.slice(0, -1);
+                    }
+                    return w.slice(0, -2); // played -> play
+                }
+                if (w.endsWith('ing')) {
+                    if (w.endsWith('ying')) return w.slice(0, -4) + 'y';
+                    if (w.length > 6 && w[w.length-4] === w[w.length-5] && 'bdfgklmnprstz'.includes(w[w.length-4])) {
+                        return w.slice(0, -4);
+                    }
+                    // e-ending drop: loving -> love
+                    if (w.endsWith('ating') || w.endsWith('ising') || w.endsWith('izing') || w.endsWith('ucing') || w.endsWith('ving') || w.endsWith('sing') || w.endsWith('cing') || w.endsWith('ning')) {
+                        return w.slice(0, -3) + 'e';
+                    }
+                    return w.slice(0, -3);
+                }
+                if (w.endsWith('s') && !w.endsWith('ss')) {
+                    if (w.endsWith('es')) return w.slice(0, -2);
+                    return w.slice(0, -1);
+                }
+            }
+
+            // 3. Regular noun rules (NN)
+            if (pos === 'NN') {
+                if (w.endsWith('sses') || w.endsWith('shes') || w.endsWith('ches') || w.endsWith('xes')) return w.slice(0, -2);
+                if (w.endsWith('ies')) return w.slice(0, -3) + 'y';
+                if (w.endsWith('ves') && (w.endsWith('elves') || w.endsWith('ives') || w.endsWith('aves'))) return w.slice(0, -3) + 'f';
+                if (w.endsWith('s') && !w.endsWith('ss') && !w.endsWith('us') && !w.endsWith('is') && !w.endsWith('as')) return w.slice(0, -1);
+            }
+
+            return w;
+        }
+
+        // Guess Part of Speech (POS) tagger based on word suffix rules for unclassified words
+        function guessPOS(word) {
+            const w = word.toLowerCase();
+            if (w.endsWith('ly')) return 'RB';
+            if (w.endsWith('ness') || w.endsWith('tion') || w.endsWith('ment') || w.endsWith('ity') || w.endsWith('ship') || w.endsWith('ance') || w.endsWith('ence')) return 'NN';
+            if (w.endsWith('ify') || w.endsWith('ate') || w.endsWith('ise') || w.endsWith('ize')) return 'VB';
+            if (w.endsWith('ful') || w.endsWith('less') || w.endsWith('able') || w.endsWith('ible') || w.endsWith('ous') || w.endsWith('ish') || w.endsWith('ive') || w.endsWith('al')) return 'JJ';
+            return 'NN'; // Default NN
+        }
+
+        // Guess NLTK pos-tag based on custom pos category
+        function getCefrpyPos(posCategory) {
+            if (posCategory === 'VB' || posCategory === 'MD') return 'VB';
+            if (posCategory === 'JJ') return 'JJ';
+            if (posCategory === 'RB') return 'RB';
+            return 'NN';
+        }
+
+        // Sentence Tokenizer using high-precision Regex (handles initials & abbreviations safely)
+        function tokenizeSentences(text) {
+            if (!text) return [];
+            
+            // Clean up multiple whitespaces & tabs
+            const cleanText = text.replace(/\s+/g, ' ').trim();
+            
+            // Sentence splitting with lookahead: split on .!? followed by space and capital letter/quotes
+            // Avoid splitting on common English abbreviations (e.g. Mr., Dr., Capt., St., e.g., i.e.)
+            const sentencePlaceholder = "###SEN###";
+            const abbrevs = /\b(Mr|Mrs|Ms|Dr|Prof|Sr|Jr|St|Co|Ltd|Inc|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec|vs|eg|ie|ca|al|Vol|Ed|Gen|Capt|Col)\./gi;
+            
+            // Temporarily mask abbreviation periods
+            let maskedText = cleanText.replace(abbrevs, function(match) {
+                return match.replace('.', '___DOT___');
+            });
+            
+            // Split sentences
+            const rawSentences = maskedText.split(/([.!?]\s+(?=["'A-Z]))/g);
+            let sentences = [];
+            let current = "";
+            
+            for (let i = 0; i < rawSentences.length; i++) {
+                const chunk = rawSentences[i];
+                if (!chunk) continue;
+                
+                if (chunk.match(/^[.!?]\s+$/)) {
+                    current += chunk.trim();
+                    if (current) {
+                        sentences.push(current);
+                        current = "";
+                    }
+                } else {
+                    current += chunk;
+                }
+            }
+            if (current.trim()) {
+                sentences.push(current.trim());
+            }
+            
+            // Restore abbreviation periods
+            return sentences.map(s => s.replace(/___DOT___/g, '.'));
+        }
+
+        // Word tokenizing helper (extracts alphabetical words and handles apostrophes safely)
+        function tokenizeWords(sentence) {
+            if (!sentence) return [];
+            // Match alphabetical tokens and single inner apostrophes: e.g. "don't" or "father's"
+            const regex = /\b[a-zA-Z]+(?:'[a-zA-Z]+)?\b/g;
+            return sentence.match(regex) || [];
+        }
+
+        // -----------------------------------------------------------------------------
         // Global State variables
+        // -----------------------------------------------------------------------------
+        let cefrDb = null; // Loaded dynamically via fetch
         let rawWordsData = [];
         let filteredWordsData = [];
         let globalStats = {
@@ -1362,15 +1488,12 @@
         };
         
         let chartInstance = null;
-        let translationsCache = {}; // Client-side cache of translations
-        
-        // Pagination state
         let currentPage = 1;
         const rowsPerPage = 15;
 
         // Active filters state
-        let activeLevels = new Set(['B1', 'B2', 'C1', 'C2', 'U']); // Default: Intermediate & above, & Unclassified
-        let activePos = new Set(['NN', 'VB', 'MD', 'JJ', 'RB', 'PRON', 'PREP', 'CONJ', 'ETC']); // Default: All core Parts of Speech
+        let activeLevels = new Set(['B1', 'B2', 'C1', 'C2', 'U']); 
+        let activePos = new Set(['NN', 'VB', 'MD', 'JJ', 'RB', 'PRON', 'PREP', 'CONJ', 'ETC']); 
         const posMap = {
             'NN': '명사',
             'VB': '동사',
@@ -1387,7 +1510,7 @@
         let searchQuery = '';
 
         // Word Length filters state
-        let lengthFilterMode = 'all'; // 'all', 'expression', 'simple'
+        let lengthFilterMode = 'all'; 
         let lenExprMin = 3;
         let lenExprMax = 5;
         let lenExprOp1 = '<=';
@@ -1443,6 +1566,25 @@
         const themeIconMoon = document.getElementById('themeIconMoon');
 
         // -----------------------------------------------------------------------------
+        // CEFR Database Async Fetch on Startup
+        // -----------------------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch('./cefr_db.json')
+            .then(res => {
+                if (!res.ok) throw new Error("CEFR DB 로드 실패");
+                return res.json();
+            })
+            .then(data => {
+                cefrDb = data;
+                console.log("CEFR Database loaded successfully! Words count:", Object.keys(data).length);
+            })
+            .catch(err => {
+                console.error("Error loading cefr_db.json:", err);
+                showToast("CEFR 어휘 등급 데이터베이스 로드에 실패했습니다. GitHub Pages 설정을 확인해 주세요.");
+            });
+        });
+
+        // -----------------------------------------------------------------------------
         // File Drag and Drop Event Listeners
         // -----------------------------------------------------------------------------
         ['dragenter', 'dragover'].forEach(eventName => {
@@ -1474,12 +1616,17 @@
         });
 
         // -----------------------------------------------------------------------------
-        // File Upload & Analysis Dispatcher
+        // File Parsing Router
         // -----------------------------------------------------------------------------
-        function handleFile(file) {
+        async function handleFile(file) {
             const fnLower = file.name.toLowerCase();
             if (!(fnLower.endsWith('.epub') || fnLower.endsWith('.txt') || fnLower.endsWith('.pdf'))) {
                 showToast('EPUB, TXT 및 PDF 확장자 파일만 업로드할 수 있습니다.');
+                return;
+            }
+
+            if (!cefrDb) {
+                showToast('아직 난이도 데이터베이스가 로드되지 않았습니다. 잠시만 기다려 주세요.');
                 return;
             }
 
@@ -1487,47 +1634,48 @@
             uploadContainer.style.display = 'none';
             loadingContainer.style.display = 'flex';
             
-            // Custom interactive loading text updates
             loadingTitle.innerText = "데이터 파싱 준비 중...";
             loadingText.innerText = "업로드된 리소스 패키지의 유효성을 확인하고 있습니다.";
-            
-            const stateMessages = [
-                { time: 1000, title: "EPUB 파일 해제 중...", text: "도서 내부 HTML/XHTML 리소스를 안전하게 추출하고 있습니다." },
-                { time: 3000, title: "텍스트 구조화 분석 중...", text: "책 속 문장을 수집하고 자연어 문맥(Sentence Tokenizing)을 정밀 정제하고 있습니다." },
-                { time: 6000, title: "자연어 분석 진행 중...", text: "NLTK를 통해 각 품사 태깅(POS Tagging) 및 인명, 지명, 출판물 고유명사를 완벽하게 거르는 작업을 수행하고 있습니다." },
-                { time: 10000, title: "어휘 난이도 등급 분류 중...", text: "CEFR 기준에 따라 초급 어휘(A1, A2)와 중고급 어휘(B1~C2)를 맵핑하고 있습니다." }
-            ];
 
             const timers = [];
-            stateMessages.forEach(msg => {
-                const timer = setTimeout(() => {
-                    loadingTitle.innerText = msg.title;
-                    loadingText.innerText = msg.text;
-                }, msg.time);
-                timers.push(timer);
-            });
+            const triggerTimer = (delay, title, text) => {
+                const t = setTimeout(() => {
+                    loadingTitle.innerText = title;
+                    loadingText.innerText = text;
+                }, delay);
+                timers.push(t);
+            };
 
-            // Perform backend API request
-            const formData = new FormData();
-            formData.append('file', file);
+            triggerTimer(800, "파일 데이터 해제 중...", "문서 구조를 안전하게 분석하고 있습니다.");
+            triggerTimer(2000, "텍스트 추출 및 구조화 중...", "문서 내부 텍스트 본문과 예문을 발췌하고 있습니다.");
+            triggerTimer(4000, "고품격 자연어 분석 중...", "형태소 태깅, 표제어 원형 추출 및 고유명사 제거 연산을 수행 중입니다.");
+            triggerTimer(7000, "어휘 레벨 매핑 중...", "17만 단어 등급 데이터베이스와 실시간 매칭을 진행하고 있습니다.");
 
-            fetch('/api/analyze', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => {
-                timers.forEach(t => clearTimeout(t)); // Clear loading text timers
-                if (!res.ok) {
-                    return res.json().then(err => { throw new Error(err.error || '분석 중 실패했습니다.'); });
+            try {
+                let fullText = "";
+                
+                if (fnLower.endsWith('.txt')) {
+                    fullText = await readTxtFile(file);
+                } else if (fnLower.endsWith('.pdf')) {
+                    fullText = await parsePdfFile(file);
+                } else if (fnLower.endsWith('.epub')) {
+                    fullText = await parseEpubFile(file);
                 }
-                return res.json();
-            })
-            .then(data => {
+
+                if (!fullText.trim()) {
+                    throw new Error("추출된 텍스트가 없거나, 읽을 수 없는 파일 형식입니다.");
+                }
+
+                // Run client-side NLP pipeline
+                const result = processEnglishText(fullText);
+
+                timers.forEach(t => clearTimeout(t)); // Clear timers
+
                 // Save analysis results to global state
-                rawWordsData = data.words;
-                globalStats.filename = data.filename;
-                globalStats.totalSentences = data.total_sentences;
-                globalStats.uniqueWords = data.unique_words_count;
+                rawWordsData = result.words;
+                globalStats.filename = file.name;
+                globalStats.totalSentences = result.totalSentences;
+                globalStats.uniqueWords = result.uniqueWordsCount;
                 
                 // Set default side cards info
                 document.getElementById('statFilename').innerText = globalStats.filename;
@@ -1542,8 +1690,8 @@
                 document.querySelector('.container').classList.add('wide-layout');
                 
                 // Dynamic Range Config based on book max frequency
-                if (data.words && data.words.length > 0) {
-                    const maxCount = Math.max(...data.words.map(w => w.count));
+                if (rawWordsData && rawWordsData.length > 0) {
+                    const maxCount = Math.max(...rawWordsData.map(w => w.count));
                     minFreqRange.max = maxCount;
                     minFreqRange.value = 1;
                     minFreqInput.max = maxCount;
@@ -1561,15 +1709,278 @@
                 renderDistributionChart();
                 applyFilters(); 
                 
-                showToast("도서 분석이 성공적으로 완료되었습니다!");
-            })
-            .catch(err => {
+                showToast("원서 분석이 성공적으로 완료되었습니다!");
+
+            } catch (err) {
                 timers.forEach(t => clearTimeout(t));
                 console.error(err);
                 uploadContainer.style.display = 'block';
                 loadingContainer.style.display = 'none';
-                showToast(err.message || '서버 연결에 실패했습니다. 코드를 다시 확인해 주세요.');
+                showToast(err.message || '파일 파싱 처리에 실패했습니다.');
+            }
+        }
+
+        // -----------------------------------------------------------------------------
+        // File Parsers Implementations (Client-side)
+        // -----------------------------------------------------------------------------
+        
+        // 1. TXT File Reader
+        function readTxtFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (err) => reject(new Error("TXT 파일 읽기 실패"));
+                reader.readAsText(file, 'utf-8');
             });
+        }
+
+        // 2. PDF Browser Parser (using PDF.js)
+        async function parsePdfFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = "";
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const pageText = content.items.map(item => item.str).join(' ');
+                text += pageText + "\n";
+            }
+            return text;
+        }
+
+        // 3. EPUB Browser Parser (using JSZip + DOMParser)
+        async function parseEpubFile(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            
+            // Locate OPF file
+            let opfPath = "";
+            const containerXml = await zip.file("META-INF/container.xml")?.async("string");
+            if (containerXml) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(containerXml, "text/xml");
+                const rootfile = doc.querySelector("rootfile");
+                if (rootfile) {
+                    opfPath = rootfile.getAttribute("full-path");
+                }
+            }
+
+            let htmlFiles = [];
+            if (opfPath) {
+                const opfData = await zip.file(opfPath)?.async("string");
+                if (opfData) {
+                    const parser = new DOMParser();
+                    const opfDoc = parser.parseFromString(opfData, "text/xml");
+                    
+                    // Manifest mapping
+                    let manifest = {};
+                    const items = opfDoc.querySelectorAll("item");
+                    items.forEach(item => {
+                        const id = item.getAttribute("id");
+                        const href = item.getAttribute("href");
+                        const media = item.getAttribute("media-type");
+                        if (id && href && media && (media.includes("html") || media.includes("xhtml"))) {
+                            manifest[id] = href;
+                        }
+                    });
+
+                    // Resolve spine order
+                    const itemrefs = opfDoc.querySelectorAll("itemref");
+                    let opfDir = opfPath.includes("/") ? opfPath.substring(0, opfPath.lastIndexOf("/")) : "";
+                    
+                    itemrefs.forEach(ref => {
+                        const idref = ref.getAttribute("idref");
+                        if (manifest[idref]) {
+                            let fullHref = manifest[idref];
+                            if (opfDir) {
+                                // Simple relative path resolver
+                                fullHref = opfDir + "/" + fullHref;
+                            }
+                            // Normalize double slashes or dot navigation
+                            fullHref = fullHref.replace(/\/+/g, '/');
+                            htmlFiles.push(fullHref);
+                        }
+                    });
+                }
+            }
+
+            // Fallback: search zip list
+            if (htmlFiles.length === 0) {
+                htmlFiles = Object.keys(zip.files).filter(fn => fn.endsWith('.html') || fn.endsWith('.xhtml') || fn.endsWith('.htm'));
+                htmlFiles.sort();
+            }
+
+            let text = "";
+            const parser = new DOMParser();
+
+            for (const fn of htmlFiles) {
+                const fileObj = zip.file(fn);
+                if (!fileObj) {
+                    // Try decoding URL encoded path
+                    const decodedFn = decodeURIComponent(fn);
+                    const decodedFile = zip.file(decodedFn);
+                    if (decodedFile) {
+                        const htmlContent = await decodedFile.async("string");
+                        text += parseVisibleHtmlText(htmlContent, parser) + "\n";
+                    }
+                    continue;
+                }
+                const htmlContent = await fileObj.async("string");
+                text += parseVisibleHtmlText(htmlContent, parser) + "\n";
+            }
+
+            return text;
+        }
+
+        function parseVisibleHtmlText(htmlString, domParser) {
+            try {
+                const doc = domParser.parseFromString(htmlString, "text/html");
+                // Strip scripts, styles, etc.
+                const nodesToDecompose = doc.querySelectorAll("script, style, head, title, meta");
+                nodesToDecompose.forEach(n => n.remove());
+                
+                const readableElements = doc.querySelectorAll("p, h1, h2, h3, h4, h5, h6, li");
+                if (readableElements.length > 0) {
+                    return Array.from(readableElements).map(el => el.innerText.trim()).filter(t => t).join("\n");
+                }
+                return doc.body ? doc.body.innerText.trim() : "";
+            } catch (err) {
+                console.error("Html parsing warning:", err);
+                return "";
+            }
+        }
+
+        // -----------------------------------------------------------------------------
+        // Core Natural Language Pipeline (Client-side Engine)
+        // -----------------------------------------------------------------------------
+        function processEnglishText(text) {
+            const sentences = tokenizeSentences(text);
+            const totalSentences = sentences.length;
+
+            let wordCounts = {}; // word -> frequency
+            let wordContexts = {}; // word -> first matching sentence
+            let wordRawTags = {}; // word -> NLTK-like POS tag (we guess/retrieve)
+
+            // Step 1. Word tokenization, Lemmatization, and Tagging
+            for (let sIdx = 0; sIdx < sentences.length; sIdx++) {
+                const sentence = sentences[sIdx];
+                const rawTokens = tokenizeWords(sentence);
+
+                for (let tIdx = 0; tIdx < rawTokens.length; tIdx++) {
+                    const token = rawTokens[tIdx];
+                    if (!token || token.length <= 1) continue;
+
+                    const tokenLower = token.toLowerCase();
+
+                    // Contraction garbage filter
+                    if (CONTRACTION_GARBAGE.has(tokenLower)) continue;
+                    if (tokenLower.startsWith("'") || tokenLower.endsWith("'")) continue;
+
+                    const isFirstWord = (tIdx === 0);
+
+                    // 1. Guess POS & Lemmatize by checking cefr_db first
+                    let posTag = 'NN';
+                    let cefrLevel = 'U';
+                    let isProper = false;
+
+                    const dbEntry = cefrDb[tokenLower];
+                    if (dbEntry) {
+                        // Retrieve the first POS class registered in cefr_db
+                        const availablePosTags = Object.keys(dbEntry);
+                        posTag = availablePosTags[0]; // e.g. 'NN', 'VB', 'JJ', 'RB', 'MD', 'DT', 'IN', 'PRP'
+                        cefrLevel = dbEntry[posTag];
+                    } else {
+                        // Guess POS based on suffix
+                        posTag = guessPOS(tokenLower);
+                    }
+
+                    // Map cefr_db POS tags to detailed POS tags we use in UI
+                    let uiPos = 'NN';
+                    if (posTag === 'MD') uiPos = 'MD';
+                    else if (posTag.startsWith('V')) uiPos = 'VB';
+                    else if (posTag.startsWith('J')) uiPos = 'JJ';
+                    else if (posTag.startsWith('R') || posTag === 'WRB') uiPos = 'RB';
+                    else if (posTag.startsWith('N')) uiPos = 'NN';
+                    else if (['PRP', 'PRP$', 'WP', 'WP$', 'EX'].includes(posTag)) uiPos = 'PRON';
+                    else if (posTag === 'CC') uiPos = 'CONJ';
+                    else if (posTag === 'IN') {
+                        if (CONJUNCTIONS_IN.has(tokenLower)) uiPos = 'CONJ';
+                        else uiPos = 'PREP';
+                    } else if (posTag === 'TO') {
+                        uiPos = 'PREP';
+                    } else {
+                        uiPos = 'ETC';
+                    }
+
+                    // 2. Lemmatize
+                    const lemma = lemmatize(tokenLower, uiPos);
+
+                    // 3. Proper noun check (NER emulator)
+                    // If capitalized, not first word, and not in the database -> Proper Noun (NNP)
+                    if (token[0] === token[0].toUpperCase() && token[0] !== token[0].toLowerCase()) {
+                        if (!isFirstWord) {
+                            if (!cefrDb[tokenLower]) {
+                                isProper = true;
+                            }
+                        } else {
+                            // If first word, capitalized, but NOT in DB -> highly likely NNP organization/name
+                            if (!cefrDb[tokenLower] && tokenLower !== 'i') {
+                                isProper = true;
+                            }
+                        }
+                    }
+
+                    if (isProper) continue; // Skip proper nouns!
+
+                    // 4. Save word
+                    if (!wordCounts[lemma]) {
+                        wordCounts[lemma] = 0;
+                        wordContexts[lemma] = sentence;
+                        wordRawTags[lemma] = uiPos;
+                    }
+                    wordCounts[lemma]++;
+                }
+            }
+
+            // Step 2. Build final words list with CEFR level
+            let wordsList = [];
+            const allLemmas = Object.keys(wordCounts);
+
+            allLemmas.forEach(lemma => {
+                const count = wordCounts[lemma];
+                const context = wordContexts[lemma];
+                const pos = wordRawTags[lemma];
+
+                // CEFR Level Lookup
+                let level = 'U';
+                const cefrPos = getCefrpyPos(pos);
+                
+                if (cefrDb[lemma]) {
+                    // Try exact POS mapping
+                    level = cefrDb[lemma][cefrPos] || cefrDb[lemma][Object.keys(cefrDb[lemma])[0]] || 'U';
+                }
+
+                wordsList.push({
+                    word: lemma,
+                    pos: pos,
+                    level: level,
+                    count: count,
+                    context: context
+                });
+            });
+
+            // Sort words by frequency descending, then alphabetically
+            wordsList.sort((a, b) => {
+                if (b.count !== a.count) return b.count - a.count;
+                return a.word.localeCompare(b.word);
+            });
+
+            return {
+                words: wordsList,
+                totalSentences: totalSentences,
+                uniqueWordsCount: allLemmas.length
+            };
         }
 
         // -----------------------------------------------------------------------------
@@ -1578,7 +1989,7 @@
         function updateFilterControlsLimits() {
             if (!rawWordsData || rawWordsData.length === 0) return;
 
-            // 1. Get words matching active CEFR levels ONLY (baseline for frequency)
+            // 1. Get words matching active CEFR levels ONLY
             const levelFilteredWords = rawWordsData.filter(word => {
                 let levelMatch = false;
                 if (activeLevels.has('A1A2')) {
@@ -1592,17 +2003,17 @@
 
             if (levelFilteredWords.length === 0) return;
 
-            // 2. Compute dynamic frequency min/max limits based on level baseline
+            // 2. Compute dynamic frequency min/max limits
             const freqCounts = levelFilteredWords.map(w => w.count);
             const dynamicMaxFreq = Math.max(...freqCounts);
             
-            // Adjust slider/input upper bounds
+            // Adjust slider upper bounds
             minFreqRange.max = dynamicMaxFreq;
             minFreqInput.max = dynamicMaxFreq;
             maxFreqRange.max = dynamicMaxFreq;
             maxFreqInput.max = dynamicMaxFreq;
 
-            // Strict Capping: prevent current values from exceeding new dynamic limits
+            // Capping
             if (minFrequency > dynamicMaxFreq) {
                 minFrequency = dynamicMaxFreq;
                 minFreqRange.value = minFrequency;
@@ -1614,18 +2025,25 @@
                 maxFreqInput.value = maxFrequency;
             }
 
-            // 3. Compute dynamic word length bounds based on active level + frequency state
-            const levelAndFreqWords = levelFilteredWords.filter(word => {
-                return word.count >= minFrequency && word.count <= maxFrequency;
+            // 3. Compute dynamic word length bounds
+            const finalPreFilteredWords = levelFilteredWords.filter(word => {
+                const posMatch = activePos.has(word.pos);
+                const freqMatch = word.count >= minFrequency && word.count <= maxFrequency;
+                const searchMatch = searchQuery === '' || word.word.toLowerCase().includes(searchQuery);
+                return posMatch && freqMatch && searchMatch;
             });
 
             const guideEl = document.getElementById('lenRangeGuide');
-            if (levelAndFreqWords.length > 0) {
-                const lengths = levelAndFreqWords.map(w => w.word.length);
-                const dynamicMaxLen = Math.max(...lengths);
+            if (finalPreFilteredWords.length > 0) {
+                const lengths = finalPreFilteredWords.map(w => w.word.length);
                 const dynamicMinLen = Math.min(...lengths);
+                const dynamicMaxLen = Math.max(...lengths);
 
-                // Update length inputs min/max limits
+                if (guideEl) {
+                    guideEl.innerText = `현재 조건 어휘 길이 범위: ${dynamicMinLen} ~ ${dynamicMaxLen} 글자`;
+                }
+
+                // Adjust DOM ranges limits
                 lenExprMinInput.min = dynamicMinLen;
                 lenExprMinInput.max = dynamicMaxLen;
                 lenExprMaxInput.min = dynamicMinLen;
@@ -1633,11 +2051,7 @@
                 lenSimpleValInput.min = dynamicMinLen;
                 lenSimpleValInput.max = dynamicMaxLen;
 
-                if (guideEl) {
-                    guideEl.innerText = `현재 조건 어휘 길이 범위: ${dynamicMinLen} ~ ${dynamicMaxLen} 글자`;
-                }
-
-                // Capping values to stay within the active dynamic length boundaries
+                // Restrict input values
                 if (lenExprMin < dynamicMinLen) {
                     lenExprMin = dynamicMinLen;
                     lenExprMinInput.value = lenExprMin;
@@ -1646,7 +2060,6 @@
                     lenExprMin = dynamicMaxLen;
                     lenExprMinInput.value = lenExprMin;
                 }
-
                 if (lenExprMax < dynamicMinLen) {
                     lenExprMax = dynamicMinLen;
                     lenExprMaxInput.value = lenExprMax;
@@ -1675,7 +2088,6 @@
         // Filtering & Processing Engine (Frontend side)
         // -----------------------------------------------------------------------------
         function applyFilters() {
-            // 실시간 상태 반영 제어 한계 동적 조율 우선 실행
             updateFilterControlsLimits();
 
             filteredWordsData = rawWordsData.filter(word => {
@@ -1688,29 +2100,25 @@
                     levelMatch = true;
                 }
 
-                // 1.5. POS(품사) filter
+                // 1.5. POS filter
                 const posMatch = activePos.has(word.pos);
                 
                 // 2. Frequency filter
                 const freqMatch = word.count >= minFrequency && word.count <= maxFrequency;
                 
                 // 3. Search query filter
-                const searchMatch = searchQuery === '' || 
-                    word.word.toLowerCase().includes(searchQuery) ||
-                    (translationsCache[word.word] && translationsCache[word.word].toLowerCase().includes(searchQuery));
+                const searchMatch = searchQuery === '' || word.word.toLowerCase().includes(searchQuery);
                 
-                // 4. Word Length (글자수) filter
+                // 4. Word Length filter
                 let lengthMatch = true;
                 const len = word.word.length;
                 
                 if (lengthFilterMode === 'expression') {
-                    // Evaluate left: lenExprMin OP1 len
                     let leftOk = false;
                     if (lenExprOp1 === '<=') leftOk = (lenExprMin <= len);
                     else if (lenExprOp1 === '<') leftOk = (lenExprMin < len);
                     else if (lenExprOp1 === '=') leftOk = (lenExprMin === len);
                     
-                    // Evaluate right: len OP2 lenExprMax
                     let rightOk = false;
                     if (lenExprOp2 === '<=') rightOk = (len <= lenExprMax);
                     else if (lenExprOp2 === '<') rightOk = (len < lenExprMax);
@@ -1731,42 +2139,41 @@
             // Update stats
             document.getElementById('statFilteredWords').innerText = filteredWordsData.length.toLocaleString();
             
-            // Render table
+            // Render table & redraw chart
             currentPage = 1;
             renderTable();
         }
 
-        // Filter Event binding - CEFR buttons
-        document.querySelectorAll('.cefr-badge-btn[data-level]').forEach(btn => {
+        // -----------------------------------------------------------------------------
+        // UI Binders (CEFR and POS Badge button click listeners)
+        // -----------------------------------------------------------------------------
+        document.querySelectorAll('.cefr-filter-container[id!="posFilterContainer"] .cefr-badge-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                const level = btn.getAttribute('data-level');
-                if (activeLevels.has(level)) {
-                    if (activeLevels.size > 1) { // Prevent unselecting all
-                        activeLevels.delete(level);
+                const lvl = btn.getAttribute('data-level');
+                if (activeLevels.has(lvl)) {
+                    if (activeLevels.size > 1) {
+                        activeLevels.delete(lvl);
                         btn.classList.remove('active');
                     } else {
-                        showToast("최소 한 개의 어휘 레벨을 선택하셔야 합니다.");
-                        return;
+                        showToast("최소한 하나의 난이도 레벨은 선택해야 합니다.");
                     }
                 } else {
-                    activeLevels.add(level);
+                    activeLevels.add(lvl);
                     btn.classList.add('active');
                 }
                 applyFilters();
             });
         });
 
-        // Filter Event binding - POS buttons
-        document.querySelectorAll('.cefr-badge-btn[data-pos]').forEach(btn => {
+        document.querySelectorAll('#posFilterContainer .cefr-badge-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const pos = btn.getAttribute('data-pos');
                 if (activePos.has(pos)) {
-                    if (activePos.size > 1) { // Prevent unselecting all
+                    if (activePos.size > 1) {
                         activePos.delete(pos);
                         btn.classList.remove('active');
                     } else {
-                        showToast("최소 한 개의 품사를 선택하셔야 합니다.");
-                        return;
+                        showToast("최소한 하나의 단어 종류는 선택해야 합니다.");
                     }
                 } else {
                     activePos.add(pos);
@@ -1776,86 +2183,88 @@
             });
         });
 
-        // Filter Event binding - Frequency controls (Min & Max)
-        function updateMinFrequency(val) {
-            let value = parseInt(val);
-            if (isNaN(value) || value < 1) {
-                value = 1;
-            }
-            const maxLimit = parseInt(minFreqRange.max) || 10000;
-            if (value > maxLimit) {
-                value = maxLimit;
-            }
-
-            minFrequency = value;
-            minFreqRange.value = value;
-            minFreqInput.value = value;
-
-            // Adjust max value to avoid logical overlapping
+        // Range inputs synchronization (Min Frequency)
+        minFreqRange.addEventListener('input', e => {
+            minFrequency = parseInt(e.target.value) || 1;
+            minFreqInput.value = minFrequency;
+            
+            // Collision prevention
             if (minFrequency > maxFrequency) {
                 maxFrequency = minFrequency;
-                maxFreqRange.value = minFrequency;
-                maxFreqInput.value = minFrequency;
+                maxFreqRange.value = maxFrequency;
+                maxFreqInput.value = maxFrequency;
             }
             applyFilters();
-        }
-
-        function updateMaxFrequency(val) {
-            let value = parseInt(val);
-            const maxLimit = parseInt(maxFreqRange.max) || 10000;
-            if (isNaN(value)) {
-                value = maxLimit;
-            }
-            if (value < 1) {
-                value = 1;
-            }
-            if (value > maxLimit) {
-                value = maxLimit;
-            }
-
-            maxFrequency = value;
-            maxFreqRange.value = value;
-            maxFreqInput.value = value;
-
-            // Adjust min value to avoid logical overlapping
-            if (maxFrequency < minFrequency) {
-                minFrequency = maxFrequency;
-                minFreqRange.value = maxFrequency;
-                minFreqInput.value = maxFrequency;
-            }
-            applyFilters();
-        }
-
-        minFreqRange.addEventListener('input', e => {
-            updateMinFrequency(e.target.value);
         });
 
         minFreqInput.addEventListener('input', e => {
-            updateMinFrequency(e.target.value);
+            let val = parseInt(e.target.value) || 1;
+            const maxLimit = parseInt(minFreqRange.max);
+            if (val < 1) val = 1;
+            if (val > maxLimit) val = maxLimit;
+            
+            minFrequency = val;
+            minFreqRange.value = minFrequency;
+            
+            if (minFrequency > maxFrequency) {
+                maxFrequency = minFrequency;
+                maxFreqRange.value = maxFrequency;
+                maxFreqInput.value = maxFrequency;
+            }
+            applyFilters();
         });
 
         minFreqInput.addEventListener('blur', e => {
-            if (e.target.value === '') {
-                updateMinFrequency(1);
+            if (!e.target.value) {
+                minFrequency = 1;
+                minFreqInput.value = 1;
+                minFreqRange.value = 1;
+                applyFilters();
             }
         });
 
+        // Range inputs synchronization (Max Frequency)
         maxFreqRange.addEventListener('input', e => {
-            updateMaxFrequency(e.target.value);
+            maxFrequency = parseInt(e.target.value) || 1;
+            maxFreqInput.value = maxFrequency;
+            
+            // Collision prevention
+            if (maxFrequency < minFrequency) {
+                minFrequency = maxFrequency;
+                minFreqRange.value = minFrequency;
+                minFreqInput.value = minFrequency;
+            }
+            applyFilters();
         });
 
         maxFreqInput.addEventListener('input', e => {
-            updateMaxFrequency(e.target.value);
+            let val = parseInt(e.target.value) || 1;
+            const maxLimit = parseInt(maxFreqRange.max);
+            if (val < 1) val = 1;
+            if (val > maxLimit) val = maxLimit;
+            
+            maxFrequency = val;
+            maxFreqRange.value = maxFrequency;
+            
+            if (maxFrequency < minFrequency) {
+                minFrequency = maxFrequency;
+                minFreqRange.value = minFrequency;
+                minFreqInput.value = minFrequency;
+            }
+            applyFilters();
         });
 
         maxFreqInput.addEventListener('blur', e => {
-            if (e.target.value === '') {
-                const maxLimit = parseInt(maxFreqRange.max) || 10000;
-                updateMaxFrequency(maxLimit);
+            if (!e.target.value) {
+                const maxLimit = parseInt(maxFreqRange.max);
+                maxFrequency = maxLimit;
+                maxFreqInput.value = maxLimit;
+                maxFreqRange.value = maxLimit;
+                applyFilters();
             }
         });
 
-        // Filter Event binding - Search input
+        // Search Input
         searchInput.addEventListener('input', e => {
             searchQuery = e.target.value.toLowerCase().trim();
             applyFilters();
@@ -1868,7 +2277,7 @@
             vocabTableBody.innerHTML = '';
             
             if (filteredWordsData.length === 0) {
-                vocabTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 3rem;">선택된 조건에 매칭되는 단어가 없습니다. 필터를 완화해 보세요.</td></tr>`;
+                vocabTableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 3rem;">선택된 조건에 매칭되는 단어가 없습니다. 필터를 완화해 보세요.</td></tr>`;
                 pageInfo.innerText = "단어 0개 중 0-0 표시";
                 btnPrevPage.disabled = true;
                 btnNextPage.disabled = true;
@@ -1879,7 +2288,6 @@
             const totalRows = filteredWordsData.length;
             const totalPages = Math.ceil(totalRows / rowsPerPage);
             
-            // Adjust current page if boundary exceeded
             if (currentPage > totalPages) currentPage = totalPages;
             if (currentPage < 1) currentPage = 1;
             
@@ -1891,13 +2299,13 @@
             pageData.forEach(item => {
                 const tr = document.createElement('tr');
                 
-                // Word column with pos tag
+                // Word column
                 const tdWord = document.createElement('td');
                 tdWord.className = 'col-word';
                 const posKorean = posMap[item.pos] || '기타';
                 tdWord.innerHTML = `${item.word} <span class="col-pos">${posKorean}</span>`;
                 
-                // CEFR column with pill
+                // CEFR column
                 const tdCEFR = document.createElement('td');
                 tdCEFR.style.textAlign = 'center';
                 const cefrLower = item.level.toLowerCase();
@@ -1909,29 +2317,12 @@
                 tdFreq.style.textAlign = 'center';
                 tdFreq.innerText = item.count.toLocaleString();
                 
-                // Korean translation column (interactive with dynamic backend fetching)
-                const tdTrans = document.createElement('td');
-                tdTrans.className = 'translation-cell';
-                if (translationsCache[item.word]) {
-                    tdTrans.innerHTML = `<span class="translation-text">${translationsCache[item.word]}</span>`;
-                } else {
-                    const btn = document.createElement('button');
-                    btn.className = 'translate-btn';
-                    btn.innerText = '번역';
-                    btn.onclick = (e) => {
-                        e.stopPropagation();
-                        fetchTranslation(item.word, tdTrans);
-                    };
-                    tdTrans.appendChild(btn);
-                }
-                
                 // Context sentence column
                 const tdContext = document.createElement('td');
                 tdContext.className = 'context-cell';
                 tdContext.innerText = item.context;
                 tdContext.title = "더블클릭하거나 상세 보기를 하려면 클릭해 예문을 확인하세요.";
                 
-                // Row click event -> trigger full context modal drawer
                 tr.style.cursor = 'pointer';
                 tr.onclick = () => {
                     openModal(item);
@@ -1940,7 +2331,6 @@
                 tr.appendChild(tdWord);
                 tr.appendChild(tdCEFR);
                 tr.appendChild(tdFreq);
-                tr.appendChild(tdTrans);
                 tr.appendChild(tdContext);
                 
                 vocabTableBody.appendChild(tr);
@@ -1957,7 +2347,6 @@
         function renderPaginationButtons(totalPages) {
             pageNumberBtns.innerHTML = '';
             
-            // Limit page buttons visible (show current, -2, +2 pages)
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, currentPage + 2);
             
@@ -2083,7 +2472,7 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false // We use side badges or interactive hover as visual legends
+                            display: false
                         },
                         tooltip: {
                             backgroundColor: '#1f242c',
@@ -2111,7 +2500,6 @@
             if (currentChartType === 'level') return;
             currentChartType = 'level';
             
-            // 탭 스타일 스위칭
             document.getElementById('tabChartLevel').style.background = 'var(--primary-gradient)';
             document.getElementById('tabChartLevel').style.color = '#fff';
             document.getElementById('tabChartPos').style.background = 'transparent';
@@ -2124,64 +2512,12 @@
             if (currentChartType === 'pos') return;
             currentChartType = 'pos';
             
-            // 탭 스타일 스위칭
             document.getElementById('tabChartPos').style.background = 'var(--primary-gradient)';
             document.getElementById('tabChartPos').style.color = '#fff';
             document.getElementById('tabChartLevel').style.background = 'transparent';
             document.getElementById('tabChartLevel').style.color = 'var(--text-muted)';
             
             renderDistributionChart();
-        });
-
-        // -----------------------------------------------------------------------------
-        // Translation Async Fetcher
-        // -----------------------------------------------------------------------------
-        function fetchTranslation(word, containerElement, callback) {
-            // Show a tiny spinner in-cell
-            containerElement.innerHTML = `<span class="mini-spinner"></span><span style="font-size:0.8rem; color:var(--text-muted);">번역 중...</span>`;
-            
-            fetch(`/api/translate?word=${encodeURIComponent(word)}`)
-            .then(res => res.json())
-            .then(data => {
-                const meaning = data.translation || "뜻을 찾지 못함";
-                translationsCache[word] = meaning;
-                
-                // Render text back to cell
-                containerElement.innerHTML = `<span class="translation-text">${meaning}</span>`;
-                
-                if (callback) callback(meaning);
-            })
-            .catch(err => {
-                console.error(err);
-                containerElement.innerHTML = '';
-                const btn = document.createElement('button');
-                btn.className = 'translate-btn';
-                btn.innerText = '실패-재시도';
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    fetchTranslation(word, containerElement, callback);
-                };
-                containerElement.appendChild(btn);
-                if (callback) callback("");
-            });
-        }
-
-        // Translate All Visible utility
-        document.getElementById('btnTranslateVisible').addEventListener('click', () => {
-            const cells = vocabTableBody.querySelectorAll('.translation-cell');
-            let count = 0;
-            cells.forEach(cell => {
-                const btn = cell.querySelector('.translate-btn');
-                if (btn) {
-                    count++;
-                    btn.click();
-                }
-            });
-            if (count > 0) {
-                showToast(`현재 화면에 노출된 ${count}개 어휘의 한글 번역 요청을 전송했습니다.`);
-            } else {
-                showToast('현재 페이지의 어휘는 이미 모두 번역되어 있습니다.');
-            }
         });
 
         // -----------------------------------------------------------------------------
@@ -2199,33 +2535,8 @@
             // Highlight target word in context sentence
             const contextBox = document.getElementById('modalContext');
             const regex = new RegExp(`\\b(${item.word}|${item.word}s|${item.word}ed|${item.word}ing)\\b`, 'gi');
-            
-            // Format sentence with highlighter span
             let highlightedSentence = item.context.replace(regex, `<span class="context-highlight">$1</span>`);
             contextBox.innerHTML = highlightedSentence;
-            
-            // Handle meaning in modal
-            const meaningBox = document.getElementById('modalTranslation');
-            if (translationsCache[item.word]) {
-                meaningBox.innerText = translationsCache[item.word];
-            } else {
-                meaningBox.innerHTML = `<span class="mini-spinner"></span> 뜻을 불러오는 중...`;
-                
-                // Fetch translation dynamically
-                fetch(`/api/translate?word=${encodeURIComponent(item.word)}`)
-                .then(res => res.json())
-                .then(data => {
-                    const trans = data.translation || "뜻 없음";
-                    translationsCache[item.word] = trans;
-                    meaningBox.innerText = trans;
-                    
-                    // Also refresh the specific table cell if visible
-                    renderTable();
-                })
-                .catch(() => {
-                    meaningBox.innerText = "번역 에러";
-                });
-            }
             
             contextModal.classList.add('show');
         }
@@ -2234,14 +2545,12 @@
             contextModal.classList.remove('show');
         }
 
-        // Close modal when clicking outside contents
         contextModal.addEventListener('click', e => {
             if (e.target === contextModal) {
                 closeModal();
             }
         });
 
-        // Close on ESC key
         document.addEventListener('keydown', e => {
             if (e.key === 'Escape' && contextModal.classList.contains('show')) {
                 closeModal();
@@ -2252,40 +2561,34 @@
         // Export Operations (Client-side generation)
         // -----------------------------------------------------------------------------
         
-        // 1. Export CSV
+        // 1. Export CSV (Korean Meaning removed)
         document.getElementById('btnExportCSV').addEventListener('click', () => {
             if (!filteredWordsData.length) {
                 showToast("내보낼 단어가 없습니다.");
                 return;
             }
             
-            // CSV structure: Word, POS, CEFR Level, Frequency, Meaning, Context
-            let csvContent = "\uFEFF"; // UTF-8 BOM for Excel Korean compatibility
-            csvContent += "단어 (원형),품사,어휘 등급 (CEFR),책 속 등장 빈도수,한국어 번역 뜻,책 속 사용 예문\n";
+            let csvContent = "\uFEFF"; // UTF-8 BOM
+            csvContent += "단어 (원형),품사,어휘 등급 (CEFR),책 속 등장 빈도수,책 속 사용 예문\n";
             
             filteredWordsData.forEach(item => {
-                const meaning = translationsCache[item.word] || '';
-                
-                // Double quote values and escape inner quotes to avoid structure corruption
                 const word = `"${item.word.replace(/"/g, '""')}"`;
                 const posKorean = posMap[item.pos] || '기타';
                 const pos = `"${posKorean.replace(/"/g, '""')}"`;
                 const level = `"${item.level.replace(/"/g, '""')}"`;
                 const freq = item.count;
-                const trans = `"${meaning.replace(/"/g, '""')}"`;
                 const context = `"${item.context.replace(/"/g, '""')}"`;
                 
-                csvContent += `${word},${pos},${level},${freq},${trans},${context}\n`;
+                csvContent += `${word},${pos},${level},${freq},${context}\n`;
             });
             
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             
-            // Filename matches ebook name
-            const origName = globalStats.filename.replace('.epub', '');
+            const origName = globalStats.filename.replace(/\.[^/.]+$/, "");
             link.setAttribute('href', url);
-            link.setAttribute('download', `${origName}_LingoExtractor_Vocabulary.csv`);
+            link.setAttribute('download', `${origName}_LingoExtractor.csv`);
             link.style.visibility = 'hidden';
             
             document.body.appendChild(link);
@@ -2295,29 +2598,22 @@
             showToast("CSV 파일이 다운로드 되었습니다!");
         });
 
-        // 2. Export Anki TXT (Tab-separated)
+        // 2. Export Anki TXT (Tab-separated, Korean Meaning removed)
         document.getElementById('btnExportAnki').addEventListener('click', () => {
             if (!filteredWordsData.length) {
                 showToast("내보낼 단어가 없습니다.");
                 return;
             }
             
-            // Anki format: Front (Word + POS + CEFR) <tab> Back (Meaning + Context with highlighted word)
             let txtContent = "";
             
             filteredWordsData.forEach(item => {
-                const meaning = translationsCache[item.word] || '뜻 확인 필요';
-                
-                // Front styling
                 const posKorean = posMap[item.pos] || '기타';
                 const front = `${item.word} [${posKorean}] (${item.level})`;
                 
-                // Back styling (HTML elements allowed in Anki card back fields!)
-                // Highlight the word inside the sentence in bold/red
                 const regex = new RegExp(`\\b(${item.word}|${item.word}s|${item.word}ed|${item.word}ing)\\b`, 'gi');
                 const boldContext = item.context.replace(regex, `<b><font color="#ff7b72">$1</font></b>`);
-                
-                const back = `뜻: ${meaning}<br><br><i>Context: "${boldContext}"</i>`;
+                const back = `<i>Context: "${boldContext}"</i>`;
                 
                 txtContent += `${front}\t${back}\n`;
             });
@@ -2326,7 +2622,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             
-            const origName = globalStats.filename.replace('.epub', '');
+            const origName = globalStats.filename.replace(/\.[^/.]+$/, "");
             link.setAttribute('href', url);
             link.setAttribute('download', `${origName}_Anki_Deck.txt`);
             link.style.visibility = 'hidden';
@@ -2339,7 +2635,7 @@
         });
 
         // -----------------------------------------------------------------------------
-        // 텍스트 직접 입력 및 클립보드 붙여넣기 이벤트 리스너 바인딩
+        // 직접 입력 및 클립보드 붙여넣기 이벤트 리스너 바인딩
         // -----------------------------------------------------------------------------
         btnClipboardPaste.addEventListener('click', async () => {
             try {
@@ -2367,6 +2663,11 @@
                 return;
             }
 
+            if (!cefrDb) {
+                showToast('아직 난이도 데이터베이스가 로드되지 않았습니다. 잠시만 기다려 주세요.');
+                return;
+            }
+
             // UI state change to Loading
             uploadContainer.style.display = 'none';
             loadingContainer.style.display = 'flex';
@@ -2374,45 +2675,30 @@
             loadingTitle.innerText = "텍스트 분석 준비 중...";
             loadingText.innerText = "입력한 텍스트 데이터의 유효성을 검증하고 있습니다.";
             
-            const stateMessages = [
-                { time: 1000, title: "문장 구조화 분석 중...", text: "문맥 정제와 문장 분리(Sentence Tokenizing)를 수행하고 있습니다." },
-                { time: 3000, title: "자연어 처리 및 형태소 태깅 중...", text: "NLTK 기반 품사 분석과 고유명사 자동 제거 연산을 진행 중입니다." },
-                { time: 5000, title: "어휘 수준 분류 중...", text: "CEFR 기준에 어휘 난이도 매핑 및 한국어 단어 사전을 매칭하고 있습니다." }
-            ];
-
             const timers = [];
-            stateMessages.forEach(msg => {
-                const timer = setTimeout(() => {
-                    loadingTitle.innerText = msg.title;
-                    loadingText.innerText = msg.text;
-                }, msg.time);
-                timers.push(timer);
-            });
+            const triggerTimer = (delay, title, text) => {
+                const t = setTimeout(() => {
+                    loadingTitle.innerText = title;
+                    loadingText.innerText = text;
+                }, delay);
+                timers.push(t);
+            };
 
-            // Post text JSON data
-            fetch('/api/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    text: textVal,
-                    filename: '직접 입력한 텍스트'
-                })
-            })
-            .then(res => {
-                timers.forEach(t => clearTimeout(t)); // Clear loading timers
-                if (!res.ok) {
-                    return res.json().then(err => { throw new Error(err.error || '분석 중 실패했습니다.'); });
-                }
-                return res.json();
-            })
-            .then(data => {
+            triggerTimer(800, "문장 구조화 분석 중...", "문맥 정제와 문장 분리(Sentence Tokenizing)를 수행하고 있습니다.");
+            triggerTimer(2500, "자연어 처리 및 형태소 태깅 중...", "품사 분석과 고유명사 자동 제거 연산을 진행 중입니다.");
+            triggerTimer(4500, "어휘 수준 분류 중...", "CEFR 기준에 어휘 난이도 매핑을 처리하고 있습니다.");
+
+            try {
+                // Run client-side NLP pipeline
+                const result = processEnglishText(textVal);
+
+                timers.forEach(t => clearTimeout(t));
+
                 // Save analysis results to global state
-                rawWordsData = data.words;
-                globalStats.filename = data.filename;
-                globalStats.totalSentences = data.total_sentences;
-                globalStats.uniqueWords = data.unique_words_count;
+                rawWordsData = result.words;
+                globalStats.filename = '직접 입력한 텍스트';
+                globalStats.totalSentences = result.totalSentences;
+                globalStats.uniqueWords = result.uniqueWordsCount;
                 
                 // Set default side cards info
                 document.getElementById('statFilename').innerText = globalStats.filename;
@@ -2427,8 +2713,8 @@
                 document.querySelector('.container').classList.add('wide-layout');
                 
                 // Dynamic Range Config based on max frequency
-                if (data.words && data.words.length > 0) {
-                    const maxCount = Math.max(...data.words.map(w => w.count));
+                if (rawWordsData && rawWordsData.length > 0) {
+                    const maxCount = Math.max(...rawWordsData.map(w => w.count));
                     minFreqRange.max = maxCount;
                     minFreqRange.value = 1;
                     minFreqInput.max = maxCount;
@@ -2446,15 +2732,14 @@
                 renderDistributionChart();
                 applyFilters(); 
                 
-                showToast("텍스트 분석이 완벽히 완료되었습니다!");
-            })
-            .catch(err => {
+                showToast("텍스트 분석이 완료되었습니다!");
+            } catch (err) {
                 timers.forEach(t => clearTimeout(t));
                 console.error(err);
                 uploadContainer.style.display = 'block';
                 loadingContainer.style.display = 'none';
                 showToast(err.message || '텍스트 분석 처리에 실패했습니다.');
-            });
+            }
         });
 
         // -----------------------------------------------------------------------------
@@ -2464,7 +2749,6 @@
             // Reset states
             rawWordsData = [];
             filteredWordsData = [];
-            translationsCache = {};
             activePos = new Set(['NN', 'VB', 'MD', 'JJ', 'RB', 'PRON', 'PREP', 'CONJ', 'ETC']);
             document.querySelectorAll('#posFilterContainer .cefr-badge-btn').forEach(btn => btn.classList.add('active'));
             
@@ -2576,7 +2860,7 @@
                 showToast('라이트 글래스모피즘 테마로 복귀되었습니다.');
             }
             
-            // Re-render chart to beautifully match the theme transition gap line
+            // Re-render chart
             if (rawWordsData && rawWordsData.length > 0) {
                 renderDistributionChart();
             }
