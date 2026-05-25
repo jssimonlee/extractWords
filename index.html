@@ -1351,10 +1351,37 @@
             'until', 'before', 'after', 'whereas', 'once', 'whether', 'as', 'than'
         ]);
 
+        const COMMON_PROPER_NOUNS = new Set([
+            // Days & Months
+            'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+            'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december',
+            // Common English Names (Male & Female) & Fictional characters
+            'harry', 'ron', 'hermione', 'albus', 'dumbledore', 'hagrid', 'snape', 'voldemort', 'draco', 'malfoy',
+            'john', 'mary', 'james', 'sirius', 'remus', 'lupin', 'peter', 'pettigrew', 'severus', 'lily', 'arthur', 'molly',
+            'fred', 'george', 'percy', 'ginny', 'bill', 'charlie', 'neville', 'longbottom', 'lucius', 'bellatrix', 'dudley',
+            'vernon', 'petunia', 'minerva', 'mcgonagall', 'rubeus', 'quirrell', 'gilderoy', 'lockhart', 'cornelius', 'fudge',
+            'jack', 'william', 'thomas', 'charles', 'david', 'richard', 'joseph', 'robert', 'paul', 'michael', 'elizabeth',
+            'sarah', 'jessica', 'emily', 'sophia', 'charlotte', 'amelia', 'olivia', 'emma', 'isabella', 'mia', 'evelyn',
+            'abigail', 'harper', 'ella', 'chloe', 'victoria', 'grace', 'rose', 'will', 'frank',
+            'henry', 'walter', 'harold', 'alicia', 'angelina', 'katie',
+            'oliver', 'wood', 'marcus', 'flint', 'lee', 'jordan', 'hedwig', 'scabbers', 'crookshanks', 'fang', 'aragog',
+            // Countries & Places
+            'london', 'paris', 'america', 'england', 'britain', 'france', 'germany', 'europe', 'asia', 'china', 'japan',
+            'hogwarts', 'hogsmeade', 'gryffindor', 'slytherin', 'hufflepuff', 'ravenclaw', 'quidditch', 'muggle', 'muggles'
+        ]);
+
         // Simple Lemmatizer Engine
         function lemmatize(word, pos) {
             const w = word.toLowerCase();
             if (w.length <= 2) return w;
+
+            // 0. Safeguard: If the word already exists as-is in our CEFR database, do not chop the trailing "s"!
+            // (e.g. 'always', 'process', 'business' should remain intact, while 'does' matches IRREGULAR_VERBS and goes down)
+            if (cefrDb && cefrDb[w]) {
+                if (!IRREGULAR_VERBS[w] && !IRREGULAR_NOUNS[w]) {
+                    return w;
+                }
+            }
 
             // 1. Check irregulars
             if (pos === 'VB' && IRREGULAR_VERBS[w]) return IRREGULAR_VERBS[w];
@@ -1859,9 +1886,7 @@
             const sentences = tokenizeSentences(text);
             const totalSentences = sentences.length;
 
-            let wordCounts = {}; // word -> frequency
-            let wordContexts = {}; // word -> first matching sentence
-            let wordRawTags = {}; // word -> NLTK-like POS tag (we guess/retrieve)
+            let wordStats = {}; // lemma -> { totalCount, capitalizedCount, context, pos }
 
             // Step 1. Word tokenization, Lemmatization, and Tagging
             for (let sIdx = 0; sIdx < sentences.length; sIdx++) {
@@ -1878,25 +1903,17 @@
                     if (CONTRACTION_GARBAGE.has(tokenLower)) continue;
                     if (tokenLower.startsWith("'") || tokenLower.endsWith("'")) continue;
 
-                    const isFirstWord = (tIdx === 0);
-
                     // 1. Guess POS & Lemmatize by checking cefr_db first
                     let posTag = 'NN';
-                    let cefrLevel = 'U';
-                    let isProper = false;
-
                     const dbEntry = cefrDb[tokenLower];
                     if (dbEntry) {
-                        // Retrieve the first POS class registered in cefr_db
                         const availablePosTags = Object.keys(dbEntry);
-                        posTag = availablePosTags[0]; // e.g. 'NN', 'VB', 'JJ', 'RB', 'MD', 'DT', 'IN', 'PRP'
-                        cefrLevel = dbEntry[posTag];
+                        posTag = availablePosTags[0];
                     } else {
-                        // Guess POS based on suffix
                         posTag = guessPOS(tokenLower);
                     }
 
-                    // Map cefr_db POS tags to detailed POS tags we use in UI
+                    // Map to detailed POS tag
                     let uiPos = 'NN';
                     if (posTag === 'MD') uiPos = 'MD';
                     else if (posTag.startsWith('V')) uiPos = 'VB';
@@ -1917,57 +1934,74 @@
                     // 2. Lemmatize
                     const lemma = lemmatize(tokenLower, uiPos);
 
-                    // 3. Proper noun check (NER emulator)
-                    // If capitalized, not first word, and not in the database -> Proper Noun (NNP)
-                    if (token[0] === token[0].toUpperCase() && token[0] !== token[0].toLowerCase()) {
-                        if (!isFirstWord) {
-                            if (!cefrDb[tokenLower]) {
-                                isProper = true;
-                            }
-                        } else {
-                            // If first word, capitalized, but NOT in DB -> highly likely NNP organization/name
-                            if (!cefrDb[tokenLower] && tokenLower !== 'i') {
-                                isProper = true;
-                            }
-                        }
-                    }
+                    // Track capitalization details
+                    const isCapitalized = (token[0] === token[0].toUpperCase() && token[0] !== token[0].toLowerCase());
 
-                    if (isProper) continue; // Skip proper nouns!
-
-                    // 4. Save word
-                    if (!wordCounts[lemma]) {
-                        wordCounts[lemma] = 0;
-                        wordContexts[lemma] = sentence;
-                        wordRawTags[lemma] = uiPos;
+                    if (!wordStats[lemma]) {
+                        wordStats[lemma] = {
+                            totalCount: 0,
+                            capitalizedCount: 0,
+                            context: sentence,
+                            pos: uiPos
+                        };
                     }
-                    wordCounts[lemma]++;
+                    wordStats[lemma].totalCount++;
+                    if (isCapitalized) {
+                        wordStats[lemma].capitalizedCount++;
+                    }
                 }
             }
 
-            // Step 2. Build final words list with CEFR level
+            // Step 2. Build final words list with Heuristic Proper Nouns (NER) Filtering
             let wordsList = [];
-            const allLemmas = Object.keys(wordCounts);
+            const allLemmas = Object.keys(wordStats);
 
             allLemmas.forEach(lemma => {
-                const count = wordCounts[lemma];
-                const context = wordContexts[lemma];
-                const pos = wordRawTags[lemma];
+                const stat = wordStats[lemma];
+                const totalCount = stat.totalCount;
+                const capitalizedCount = stat.capitalizedCount;
+                const capRatio = capitalizedCount / totalCount;
+
+                // Heuristic Proper Noun (NER) Filter
+                let isProper = false;
+
+                // Rule A: Check common proper nouns name/place blacklist
+                if (COMMON_PROPER_NOUNS.has(lemma)) {
+                    isProper = true;
+                }
+                // Rule B: High Capitalization Ratio (e.g. Jack, Harry, Will, Rose)
+                // If it is almost always capitalized (>= 70%) and not "i"
+                else if (lemma !== 'i' && capRatio >= 0.70) {
+                    // Exception: Standard dictionary word that only appeared ONCE at the start of a sentence
+                    if (cefrDb[lemma] && totalCount === 1) {
+                        isProper = false;
+                    } else {
+                        isProper = true; // Jack, Harry, Grace, Frank etc. (Proper nouns)
+                    }
+                }
+                // Rule C: Capitalized word that is completely missing in the dictionary
+                else if (!cefrDb[lemma] && capitalizedCount > 0 && lemma !== 'i') {
+                    isProper = true;
+                }
+
+                if (isProper) {
+                    return; // Skip proper nouns!
+                }
 
                 // CEFR Level Lookup
                 let level = 'U';
-                const cefrPos = getCefrpyPos(pos);
+                const cefrPos = getCefrpyPos(stat.pos);
                 
                 if (cefrDb[lemma]) {
-                    // Try exact POS mapping
                     level = cefrDb[lemma][cefrPos] || cefrDb[lemma][Object.keys(cefrDb[lemma])[0]] || 'U';
                 }
 
                 wordsList.push({
                     word: lemma,
-                    pos: pos,
+                    pos: stat.pos,
                     level: level,
-                    count: count,
-                    context: context
+                    count: totalCount,
+                    context: stat.context
                 });
             });
 
@@ -1980,7 +2014,7 @@
             return {
                 words: wordsList,
                 totalSentences: totalSentences,
-                uniqueWordsCount: allLemmas.length
+                uniqueWordsCount: wordsList.length
             };
         }
 
