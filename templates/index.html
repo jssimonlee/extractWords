@@ -1,0 +1,2599 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LingoExtractor - 영어 EPUB 중고급 어휘 추출기</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: rgba(22, 27, 34, 0.6);
+            --panel-border: rgba(240, 246, 252, 0.1);
+            --text-color: #c9d1d9;
+            --text-muted: #8b949e;
+            --text-bright: #f0f6fc;
+            
+            --primary: #58a6ff;
+            --primary-glow: rgba(88, 166, 255, 0.15);
+            --primary-gradient: linear-gradient(135deg, #58a6ff, #bc8cff);
+            
+            --accent-purple: #bc8cff;
+            --accent-pink: #ff7b72;
+            --accent-green: #3fb950;
+            --accent-gold: #d29922;
+
+            /* CEFR Colors */
+            --color-a1: #8b949e;
+            --color-a2: #6e7681;
+            --color-b1: #3fb950;
+            --color-b2: #58a6ff;
+            --color-c1: #bc8cff;
+            --color-c2: #ff7b72;
+            --color-u: #d29922;
+
+            --chart-border: #1f242c;
+
+            /* Semantic Component Colors for Dark Mode */
+            --header-bg: rgba(13, 17, 23, 0.8);
+            --upload-bg: rgba(22, 27, 34, 0.3);
+            --textarea-bg: rgba(22, 27, 34, 0.5);
+            --badge-bg: rgba(22, 27, 34, 0.5);
+            --input-bg: rgba(22, 27, 34, 0.8);
+            --box-bg: rgba(0, 0, 0, 0.15);
+            --btn-bg: rgba(22, 27, 34, 0.8);
+            --btn-hover-bg: rgba(255, 255, 255, 0.05);
+            --btn-hover-border: rgba(255, 255, 255, 0.2);
+            --th-bg: rgba(13, 17, 23, 0.5);
+            --row-hover: rgba(255, 255, 255, 0.02);
+            --footer-bg: rgba(13, 17, 23, 0.3);
+            --modal-bg: #161b22;
+            --context-bg: rgba(255, 255, 255, 0.02);
+            --toast-bg: #1f242c;
+            --range-track: rgba(255, 255, 255, 0.15);
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f6f8fa;
+            --panel-bg: rgba(255, 255, 255, 0.7);
+            --panel-border: rgba(31, 35, 40, 0.12);
+            --text-color: #24292f;
+            --text-muted: #57606a;
+            --text-bright: #0969da;
+            
+            --primary: #0969da;
+            --primary-glow: rgba(9, 105, 218, 0.1);
+            --primary-gradient: linear-gradient(135deg, #0969da, #8250df);
+            
+            --accent-purple: #8250df;
+            --accent-pink: #cf222e;
+            --accent-green: #1a7f37;
+            --accent-gold: #9a6700;
+
+            /* CEFR Colors for Light Mode */
+            --color-a1: #57606a;
+            --color-a2: #6e7781;
+            --color-b1: #1a7f37;
+            --color-b2: #0969da;
+            --color-c1: #8250df;
+            --color-c2: #cf222e;
+            --color-u: #9a6700;
+            
+            --chart-border: #ffffff;
+
+            /* Semantic Component Colors for Light Mode */
+            --header-bg: rgba(255, 255, 255, 0.85);
+            --upload-bg: rgba(255, 255, 255, 0.6);
+            --textarea-bg: rgba(255, 255, 255, 0.85);
+            --badge-bg: rgba(255, 255, 255, 0.8);
+            --input-bg: rgba(255, 255, 255, 0.95);
+            --box-bg: rgba(9, 105, 218, 0.05);
+            --btn-bg: rgba(255, 255, 255, 0.9);
+            --btn-hover-bg: rgba(9, 105, 218, 0.05);
+            --btn-hover-border: rgba(9, 105, 218, 0.3);
+            --th-bg: rgba(234, 238, 242, 0.85);
+            --row-hover: rgba(9, 105, 218, 0.04);
+            --footer-bg: rgba(234, 238, 242, 0.6);
+            --modal-bg: #ffffff;
+            --context-bg: rgba(9, 105, 218, 0.03);
+            --toast-bg: #ffffff;
+            --range-track: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, var(--primary-glow) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(130, 80, 223, 0.08) 0%, transparent 40%);
+            color: var(--text-color);
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        header, .glass-panel, .sidebar-card, .vocab-table th, .vocab-table td, .action-btn, .page-btn, .modal-content, textarea {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        header {
+            border-bottom: 1px solid var(--panel-border);
+            background: var(--header-bg);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0.6rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            background: var(--primary-gradient);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.3);
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+
+        .logo-text h1 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1120px;
+            margin: 1rem auto;
+            padding: 0 1.5rem;
+            transition: max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .container.wide-layout {
+            max-width: 1400px;
+        }
+
+        /* Glassmorphic Panel */
+        .glass-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            padding: 1.6rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Upload State */
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            text-align: center;
+            border: 2px dashed rgba(88, 166, 255, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            background: var(--upload-bg);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            padding: 1.25rem;
+        }
+
+        .upload-section:hover, .upload-section.dragover {
+            border-color: var(--primary);
+            background: rgba(88, 166, 255, 0.03);
+            box-shadow: 0 0 30px rgba(88, 166, 255, 0.1);
+        }
+
+        .upload-icon-container {
+            width: 38px;
+            height: 38px;
+            background: rgba(88, 166, 255, 0.08);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-section:hover .upload-icon-container {
+            transform: translateY(-2px) scale(1.03);
+        }
+
+        .upload-icon {
+            width: 18px;
+            height: 18px;
+            fill: var(--primary);
+        }
+
+        .upload-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 0.3rem;
+        }
+
+        .upload-desc {
+            color: var(--text-muted);
+            max-width: 550px;
+            margin-bottom: 0.65rem;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .browse-btn {
+            background: var(--primary-gradient);
+            color: #fff;
+            font-weight: 600;
+            padding: 0.55rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(188, 140, 255, 0.15);
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+        }
+
+        .browse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(188, 140, 255, 0.3);
+        }
+
+        .browse-btn:active {
+            transform: translateY(0);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Loading Spinner Screen */
+        .loading-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 64px;
+            height: 64px;
+            border: 4px solid rgba(88, 166, 255, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Dashboard State (Grid) */
+        .dashboard-layout {
+            display: none; /* Block when active */
+            grid-template-columns: 290px 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Left Side Controls */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .sidebar-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        .card-title {
+            font-size: 1.0rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 0.5rem;
+        }
+
+        .stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stats-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .stats-value {
+            color: var(--text-bright);
+            font-weight: 700;
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* CEFR Selector Filter Badges */
+        .cefr-filter-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+        }
+
+        .cefr-badge-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.7rem;
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            background: var(--badge-bg);
+            color: var(--text-muted);
+            opacity: 0.45; /* Turn down opacity for unselected/deactivated buttons */
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .cefr-badge-btn:hover {
+            background: var(--btn-hover-bg);
+            border-color: var(--btn-hover-border);
+            opacity: 0.8;
+        }
+
+        .cefr-badge-btn.active {
+            border-color: var(--badge-color);
+            background: var(--badge-glow);
+            color: var(--badge-color); /* Matches label text color with active CEFR tier color */
+            opacity: 1; /* Fully opaque when selected */
+            box-shadow: 0 0 12px var(--badge-glow);
+        }
+
+        .cefr-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--badge-color);
+            opacity: 0.35; /* Fade out dot when level is deselected */
+            transition: opacity 0.2s ease;
+        }
+
+        .cefr-badge-btn.active .cefr-dot {
+            opacity: 1; /* Dot lights up brightly when active */
+        }
+
+        /* Frequency slider */
+        .slider-group {
+            margin-top: 1.0rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.35rem;
+        }
+
+        .slider-header label {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .slider-header span {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .slider-number-input {
+            width: 70px;
+            background: var(--input-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            color: var(--primary);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 0.12rem 0.3rem;
+            text-align: right;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .slider-number-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .slider-number-input::-webkit-outer-spin-button,
+        .slider-number-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .slider-number-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .custom-range {
+            width: 100%;
+            height: 5px;
+            border-radius: 5px;
+            outline: none;
+            background: var(--range-track);
+            -webkit-appearance: none;
+        }
+
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--primary-glow);
+            transition: transform 0.1s ease;
+        }
+
+        .custom-range::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Right Side Content Panel */
+        .content-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        /* Search & Export Bar */
+        .action-bar {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex-grow: 1;
+            max-width: 450px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.45rem 0.75rem 0.45rem 2.2rem;
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            background: var(--input-bg);
+            color: var(--text-bright);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            fill: var(--text-muted);
+            width: 14px;
+            height: 14px;
+            pointer-events: none;
+        }
+
+        .export-btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+            background: var(--btn-bg);
+            color: var(--text-bright);
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--btn-hover-bg);
+            border-color: var(--btn-hover-border);
+            transform: translateY(-1px);
+        }
+
+        .action-btn.btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            color: #ffffff !important; /* Forces white text to be highly visible over the contrast gradient */
+            box-shadow: 0 3px 10px rgba(88, 166, 255, 0.15);
+        }
+
+        .action-btn.btn-primary:hover {
+            box-shadow: 0 4px 15px rgba(88, 166, 255, 0.25);
+        }
+
+        .action-btn.btn-primary .btn-icon {
+            fill: #ffffff !important; /* Enforces white icon fill over primary gradient background */
+        }
+
+        .btn-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* Vocabulary Table */
+        .table-container {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .vocab-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .vocab-table th {
+            background: var(--th-bg);
+            color: var(--text-bright);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .vocab-table td {
+            padding: 0.78rem 1rem;
+            border-bottom: 1px solid var(--panel-border);
+            font-size: 0.9rem;
+            color: var(--text-color);
+            vertical-align: middle;
+        }
+
+        .vocab-table tr {
+            transition: background 0.15s ease;
+        }
+
+        .vocab-table tr:hover {
+            background: var(--row-hover);
+        }
+
+        /* Table Column Styles */
+        .col-word {
+            font-weight: 700;
+            color: var(--text-bright);
+            font-size: 1.05rem;
+            letter-spacing: -0.2px;
+        }
+
+        .col-pos {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--box-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 5px;
+        }
+
+        .cefr-pill {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            font-family: 'Outfit', sans-serif;
+            text-align: center;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+        }
+
+        .cefr-a1 { background: rgba(139, 148, 158, 0.15); color: #c9d1d9; border: 1px solid rgba(139, 148, 158, 0.3); }
+        .cefr-a2 { background: rgba(110, 118, 129, 0.15); color: #8b949e; border: 1px solid rgba(110, 118, 129, 0.3); }
+        .cefr-b1 { background: rgba(63, 185, 80, 0.15); color: #56d364; border: 1px solid rgba(63, 185, 80, 0.3); }
+        .cefr-b2 { background: rgba(88, 166, 255, 0.15); color: #79c0ff; border: 1px solid rgba(88, 166, 255, 0.3); }
+        .cefr-c1 { background: rgba(188, 140, 255, 0.15); color: #d2a8ff; border: 1px solid rgba(188, 140, 255, 0.3); }
+        .cefr-c2 { background: rgba(255, 123, 114, 0.15); color: #ffa198; border: 1px solid rgba(255, 123, 114, 0.3); }
+        .cefr-u { background: rgba(210, 153, 34, 0.15); color: #f0e68c; border: 1px solid rgba(210, 153, 34, 0.3); }
+
+        /* CEFR Light Mode overrides to maximize legibility & prevent extremely low contrast */
+        [data-theme="light"] .cefr-a1 { background: rgba(87, 96, 106, 0.1); color: #47505a; border: 1px solid rgba(87, 96, 106, 0.2); }
+        [data-theme="light"] .cefr-a2 { background: rgba(110, 119, 129, 0.1); color: #5e6771; border: 1px solid rgba(110, 119, 129, 0.2); }
+        [data-theme="light"] .cefr-b1 { background: rgba(26, 127, 55, 0.1); color: #1a7f37; border: 1px solid rgba(26, 127, 55, 0.2); }
+        [data-theme="light"] .cefr-b2 { background: rgba(9, 105, 218, 0.1); color: #0969da; border: 1px solid rgba(9, 105, 218, 0.2); }
+        [data-theme="light"] .cefr-c1 { background: rgba(130, 80, 223, 0.1); color: #8250df; border: 1px solid rgba(130, 80, 223, 0.2); }
+        [data-theme="light"] .cefr-c2 { background: rgba(207, 34, 46, 0.1); color: #cf222e; border: 1px solid rgba(207, 34, 46, 0.2); }
+        [data-theme="light"] .cefr-u { background: rgba(154, 103, 0, 0.1); color: #8a5700; border: 1px solid rgba(154, 103, 0, 0.2); }
+
+        .col-count {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+
+        /* Korean Translation Column */
+        .translation-cell {
+            position: relative;
+            min-width: 150px;
+        }
+
+        .translate-btn {
+            background: rgba(88, 166, 255, 0.08);
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            color: var(--primary);
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .translate-btn:hover {
+            background: rgba(88, 166, 255, 0.18);
+            border-color: var(--primary);
+        }
+
+        .translation-text {
+            font-weight: 500;
+            color: var(--text-bright);
+            font-size: 0.92rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .mini-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(88, 166, 255, 0.2);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Context Column & Accordion */
+        .context-cell {
+            max-width: 400px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .context-cell:hover {
+            color: var(--text-bright);
+            text-decoration: underline;
+        }
+
+        .context-highlight {
+            color: var(--accent-pink);
+            font-weight: 700;
+            background: rgba(255, 123, 114, 0.1);
+            padding: 0.1rem 0.3rem;
+            border-radius: 4px;
+        }
+
+        /* Pagination Footer */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: var(--footer-bg);
+            border-top: 1px solid var(--panel-border);
+        }
+
+        .page-info {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .page-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            background: var(--btn-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--btn-hover-bg);
+            border-color: var(--btn-hover-border);
+            color: var(--text-bright);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background: var(--primary-gradient);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        /* Interactive Context Modal Drawer */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--modal-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            padding: 2rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            position: relative;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-backdrop.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.15s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--text-bright);
+        }
+
+        .modal-close svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-word-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-bright);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .modal-pos-tag {
+            font-size: 0.9rem;
+            font-family: 'Fira Code', monospace;
+            background: var(--box-bg);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            color: var(--text-muted);
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .modal-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .modal-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+
+        .modal-meaning-box {
+            font-size: 1.15rem;
+            color: var(--text-bright);
+            font-weight: 600;
+            background: rgba(88, 166, 255, 0.05);
+            border: 1px dashed rgba(88, 166, 255, 0.2);
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .modal-context-box {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--text-bright);
+            background: var(--context-bg);
+            border: 1px solid var(--panel-border);
+            padding: 1.25rem;
+            border-radius: 12px;
+        }
+
+        /* Quick Toast Alert */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--toast-bg);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-bright);
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+            fill: var(--primary);
+        }
+
+        .toast-text {
+            font-weight: 500;
+            font-size: 0.92rem;
+        }
+
+        textarea#directTextArea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <div class="logo-icon">L</div>
+            <div class="logo-text">
+                <h1>LingoExtractor</h1>
+                <p>EPUB CEFR VOCABULARY ENGINE</p>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <button id="btnThemeToggle" class="action-btn" style="background: var(--btn-bg); border-color: var(--panel-border); padding: 0.5rem; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 0;">
+                <!-- Sun Icon -->
+                <svg id="themeIconSun" class="btn-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px; margin: 0; fill: var(--text-bright);"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L18.36 4.58zM5.99 18.01l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06c.39-.39.39-1.03 0-1.41s-1.02-.39-1.41 0z"/></svg>
+                <!-- Moon Icon -->
+                <svg id="themeIconMoon" class="btn-icon" viewBox="0 0 24 24" style="width: 18px; height: 18px; margin: 0; fill: var(--text-bright); display: none;"><path d="M12.3 22h-.1c-5.5 0-10-4.5-10-10C2.2 6.8 6.4 2.5 11.7 2c.6-.1 1.2.3 1.4.8.2.5 0 1.2-.5 1.5-2 .9-3.2 2.9-3.2 5.1 0 3.5 3 6.4 6.6 5.9.6-.1 1.2.2 1.4.7.2.5.1 1.2-.4 1.5-1.3.9-2.9 1.5-4.7 1.5z"/></svg>
+            </button>
+            <button id="btnReset" class="action-btn" style="display: none; background: var(--btn-bg); border-color: var(--panel-border); color: var(--text-bright); padding: 0.5rem 1rem; font-size: 0.85rem; align-items: center; gap: 0.5rem; justify-content: center;">
+                <svg class="btn-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                처음으로 (새 분석)
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 1. UPLOAD STATE -->
+        <div id="uploadContainer" class="glass-panel">
+            <div id="dropZone" class="upload-section">
+                <div class="upload-icon-container">
+                    <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                    </svg>
+                </div>
+                <h2 class="upload-title">영어 원서(EPUB/TXT/PDF) 파일 업로드</h2>
+                <p class="upload-desc">소장 중이신 영어 원서 EPUB, TXT 또는 PDF 파일을 이 영역으로 드래그 앤 드롭하거나 아래 버튼을 클릭하여 선택해 주세요. 고유명사는 철저히 제외하고, 중고급 어휘만 예문과 함께 똑똑하게 걸러냅니다.</p>
+                <button class="browse-btn" onclick="document.getElementById('fileInput').click()">파일 찾아보기</button>
+                <input type="file" id="fileInput" accept=".epub,.txt,.pdf">
+            </div>
+
+            <!-- Divider -->
+            <div style="margin: 1.0rem 0; display: flex; align-items: center; justify-content: center; gap: 1rem; color: var(--text-muted);">
+                <div style="flex-grow: 1; height: 1px; background: var(--panel-border);"></div>
+                <span style="font-size: 0.78rem; font-weight: 500;">또는 텍스트 직접 입력 / 클립보드 분석</span>
+                <div style="flex-grow: 1; height: 1px; background: var(--panel-border);"></div>
+            </div>
+
+            <!-- Direct Text / Clipboard Input Area -->
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; text-align: left; max-width: 720px; margin: 0 auto; width: 100%;">
+                <textarea id="directTextArea" placeholder="여기에 분석할 영어 원서 텍스트, 기사, 소설 문단 등을 자유롭게 붙여넣으세요..." style="width: 100%; height: 85px; background: var(--textarea-bg); border: 1px solid var(--panel-border); border-radius: 8px; color: var(--text-bright); padding: 0.75rem 0.95rem; font-family: inherit; font-size: 0.9rem; resize: vertical; outline: none; transition: all 0.2s ease;"></textarea>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 0.6rem;">
+                    <button class="action-btn" id="btnClipboardPaste" style="background: var(--btn-bg); padding: 0.52rem 1.15rem; font-size: 0.85rem; border-radius: 8px;">
+                        <svg class="btn-icon" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>
+                        클립보드에서 붙여넣기
+                    </button>
+                    <button class="browse-btn" id="btnAnalyzeDirectText" style="padding: 0.52rem 1.4rem; font-size: 0.85rem; border-radius: 8px;">
+                        텍스트 분석 시작
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. LOADING STATE -->
+        <div id="loadingContainer" class="glass-panel loading-screen">
+            <div class="spinner"></div>
+            <h3 id="loadingTitle" class="loading-title">원서 분석 중...</h3>
+            <p id="loadingText" class="loading-text">책 내부 압축을 풀고 텍스트를 구조화하고 있습니다.</p>
+        </div>
+
+        <!-- 3. DASHBOARD STATE -->
+        <div id="dashboardContainer" class="dashboard-layout">
+            <!-- Left Side controls -->
+            <div class="sidebar">
+                <!-- Book summary card -->
+                <div class="sidebar-card">
+                    <h3 class="card-title">
+                        <svg style="width: 18px; height: 18px; fill: var(--primary)" viewBox="0 0 24 24"><path d="M12 11.55C9.64 9.35 6.48 8 3 8v11c3.48 0 6.64 1.35 9 3.55 2.36-2.2 5.52-3.55 9-3.55V8c-3.48 0-6.64 1.35-9 3.55zM12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/></svg>
+                        도서 정보
+                    </h3>
+                    <div class="stats-list">
+                        <div class="stats-item">
+                            <span class="stats-label">파일명</span>
+                            <span id="statFilename" class="stats-value" style="font-size: 0.85rem; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</span>
+                        </div>
+                        <div class="stats-item">
+                            <span class="stats-label">총 문장 수</span>
+                            <span id="statSentences" class="stats-value">-</span>
+                        </div>
+                        <div class="stats-item">
+                            <span class="stats-label">추출된 총 단어</span>
+                            <span id="statTotalWords" class="stats-value">-</span>
+                        </div>
+                        <div class="stats-item">
+                            <span class="stats-label">필터링된 단어</span>
+                            <span id="statFilteredWords" class="stats-value" style="color: var(--accent-purple)">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 필터링 설정 -->
+                <div class="sidebar-card">
+                    <h3 class="card-title">
+                        <svg style="width: 18px; height: 18px; fill: var(--accent-gold)" viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+                        필터 조건 설정
+                    </h3>
+                    
+                    <!-- CEFR Level badges -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">표시할 CEFR 어휘 레벨</label>
+                        <div class="cefr-filter-container">
+                            <button class="cefr-badge-btn active" data-level="B1" style="--badge-color: var(--color-b1); --badge-glow: rgba(63, 185, 80, 0.15)">
+                                <span>B1</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-level="B2" style="--badge-color: var(--color-b2); --badge-glow: rgba(88, 166, 255, 0.15)">
+                                <span>B2</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-level="C1" style="--badge-color: var(--color-c1); --badge-glow: rgba(188, 140, 255, 0.15)">
+                                <span>C1</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-level="C2" style="--badge-color: var(--color-c2); --badge-glow: rgba(255, 123, 114, 0.15)">
+                                <span>C2</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-level="U" style="--badge-color: var(--color-u); --badge-glow: rgba(210, 153, 34, 0.15)">
+                                <span>미분류(U)</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn" data-level="A1A2" style="--badge-color: var(--color-a1); --badge-glow: rgba(139, 148, 158, 0.15)">
+                                <span>초급(A1/A2)</span> <div class="cefr-dot"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 품사(단어 종류) 필터 -->
+                    <div style="margin-top: 1.5rem; border-top: 1px solid var(--panel-border); padding-top: 1.25rem;">
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">표시할 단어 종류(품사)</label>
+                        <div class="cefr-filter-container" id="posFilterContainer">
+                            <button class="cefr-badge-btn active" data-pos="NN" style="--badge-color: var(--primary); --badge-glow: var(--primary-glow)">
+                                <span>명사</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-pos="VB" style="--badge-color: var(--accent-green); --badge-glow: rgba(26, 127, 55, 0.15)">
+                                <span>동사</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-pos="MD" style="--badge-color: #00bcd4; --badge-glow: rgba(0, 188, 212, 0.15)">
+                                <span>조동사</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-pos="JJ" style="--badge-color: var(--accent-purple); --badge-glow: rgba(130, 80, 223, 0.15)">
+                                <span>형용사</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-pos="RB" style="--badge-color: var(--accent-gold); --badge-glow: rgba(210, 153, 34, 0.15)">
+                                <span>부사</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-pos="PRON" style="--badge-color: #e91e63; --badge-glow: rgba(233, 30, 99, 0.15)">
+                                <span>대명사</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-pos="PREP" style="--badge-color: #ff9800; --badge-glow: rgba(255, 152, 0, 0.15)">
+                                <span>전치사</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-pos="CONJ" style="--badge-color: #009688; --badge-glow: rgba(0, 150, 136, 0.15)">
+                                <span>접속사</span> <div class="cefr-dot"></div>
+                            </button>
+                            <button class="cefr-badge-btn active" data-pos="ETC" style="--badge-color: var(--accent-pink); --badge-glow: rgba(255, 123, 114, 0.15); grid-column: span 2;">
+                                <span>기타</span> <div class="cefr-dot"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Min/Max Frequency sliders -->
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <label for="minFreqRange">최소 등장 빈도수</label>
+                            <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                <input type="number" id="minFreqInput" class="slider-number-input" min="1" value="1">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">회 이상</span>
+                            </div>
+                        </div>
+                        <input type="range" class="custom-range" id="minFreqRange" min="1" max="15" value="1">
+                    </div>
+                    <div class="slider-group" style="margin-top: 1.25rem;">
+                        <div class="slider-header">
+                            <label for="maxFreqRange">최대 등장 빈도수</label>
+                            <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                <input type="number" id="maxFreqInput" class="slider-number-input" min="1" value="15">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">회 이하</span>
+                            </div>
+                        </div>
+                        <input type="range" class="custom-range" id="maxFreqRange" min="1" max="15" value="15">
+                    </div>
+
+                    <!-- 단어 글자 수(길이) 필터 -->
+                    <div style="margin-top: 1.5rem; border-top: 1px solid var(--panel-border); padding-top: 1.25rem;">
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">단어 글자 수(길이) 필터</label>
+                        
+                        <select id="lengthFilterMode" class="slider-number-input" style="width: 100%; text-align: left; padding: 0.35rem; margin-bottom: 0.75rem; height: auto;">
+                            <option value="all">제한 없음 (모든 글자 수)</option>
+                            <option value="expression">기호 수식형 (예: 3 ≤ 글자수 < 5)</option>
+                            <option value="simple">단일 조건식 (예: 글자수 == 4)</option>
+                       </select>
+
+                       <!-- 1. 연속 범위 수식형 UI (3 <= Len <= 5) -->
+                       <div id="lenExprContainer" style="display: none; align-items: center; justify-content: center; gap: 0.3rem; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 8px; border: 1px solid var(--panel-border);">
+                           <input type="number" id="lenExprMin" class="slider-number-input" style="width: 50px; text-align: center; padding: 0.15rem;" min="1" value="3">
+                           
+                           <select id="lenExprOp1" class="slider-number-input" style="width: 55px; padding: 0.15rem; text-align: center; height: auto;">
+                               <option value="<=">&le;</option>
+                               <option value="<">&lt;</option>
+                               <option value="=">=</option>
+                           </select>
+
+                           <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary); white-space: nowrap;">글자수</span>
+
+                           <select id="lenExprOp2" class="slider-number-input" style="width: 55px; padding: 0.15rem; text-align: center; height: auto;">
+                               <option value="<=">&le;</option>
+                               <option value="<">&lt;</option>
+                               <option value="=">=</option>
+                           </select>
+
+                           <input type="number" id="lenExprMax" class="slider-number-input" style="width: 50px; text-align: center; padding: 0.15rem;" min="1" value="5">
+                       </div>
+
+                       <!-- 2. 단일 조건식 UI (Len >= 5) -->
+                       <div id="lenSimpleContainer" style="display: none; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 8px; border: 1px solid var(--panel-border);">
+                           <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">글자수</span>
+                           
+                           <select id="lenSimpleOp" class="slider-number-input" style="width: 65px; padding: 0.15rem; text-align: center; height: auto;">
+                               <option value="==">==</option>
+                               <option value=">=">&gt;=</option>
+                               <option value="<=">&lt;=</option>
+                               <option value=">">&gt;</option>
+                               <option value="<">&lt;</option>
+                           </select>
+
+                           <input type="number" id="lenSimpleVal" class="slider-number-input" style="width: 60px; text-align: center; padding: 0.15rem;" min="1" value="4">
+                       </div>
+                       <!-- 실시간 글자수 범위 가이드 -->
+                       <div id="lenRangeGuide" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.65rem; text-align: center; font-weight: 500;">현재 조건 어휘 길이 범위: - ~ - 글자</div>
+                    </div>
+                </div>
+
+                <!-- 어휘 분포 차트 -->
+                <div class="sidebar-card">
+                    <h3 class="card-title" style="justify-content: space-between; align-items: center; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                        <span style="display: flex; align-items: center; gap: 0.5rem;">
+                            <svg style="width: 18px; height: 18px; fill: var(--accent-purple)" viewBox="0 0 24 24"><path d="M11 2v20c-5.07-.5-9-4.79-9-10s3.93-9.5 9-10zm2.03 0v8.99H22c-.47-4.74-4.24-8.52-8.97-8.99zm0 11.01V22c4.74-.47 8.5-4.25 8.97-8.99h-8.97z"/></svg>
+                            <span id="chartCardTitle">CEFR 어휘 분포</span>
+                        </span>
+                        <!-- 탭 스위치 -->
+                        <div class="chart-tab-group" style="display: flex; background: var(--badge-bg); padding: 0.15rem; border-radius: 6px; border: 1px solid var(--panel-border);">
+                            <button id="tabChartLevel" class="chart-tab-btn" style="padding: 0.2rem 0.45rem; font-size: 0.72rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; background: var(--primary-gradient); color: #fff; font-family: inherit;">레벨별</button>
+                            <button id="tabChartPos" class="chart-tab-btn" style="padding: 0.2rem 0.45rem; font-size: 0.72rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; background: transparent; color: var(--text-muted); font-family: inherit;">품사별</button>
+                        </div>
+                    </h3>
+                    <div style="position: relative; height: 200px; width: 100%;">
+                        <canvas id="difficultyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side main list area -->
+            <div class="content-panel">
+                <!-- Action bar (Search & Download) -->
+                <div class="action-bar glass-panel" style="padding: 1.25rem;">
+                    <div class="search-wrapper">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                        <input type="text" id="searchInput" class="search-input" placeholder="추출된 단어 검색...">
+                    </div>
+                    
+                    <div class="export-btn-group">
+                        <button class="action-btn" id="btnTranslateVisible">
+                            <svg class="btn-icon" viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+                            현재 페이지 전체 번역
+                        </button>
+                        <button class="action-btn" id="btnExportCSV">
+                            <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+                            CSV 파일 내보내기
+                        </button>
+                        <button class="action-btn btn-primary" id="btnExportAnki">
+                            <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                            Anki 단어장 생성 (TXT)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main vocab list table -->
+                <div class="table-container">
+                    <table class="vocab-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%">단어 (원형)</th>
+                                <th style="width: 15%; text-align: center;">어휘 등급</th>
+                                <th style="width: 12%; text-align: center;">빈도수</th>
+                                <th style="width: 23%">한국어 뜻</th>
+                                <th style="width: 25%">책 속 예문 (문맥)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vocabTableBody">
+                            <!-- JS will inject rows here -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Table Footer pagination -->
+                    <div class="pagination-bar">
+                        <span id="pageInfo" class="page-info">단어 0개 중 0-0 표시</span>
+                        <div class="page-nav">
+                            <button id="btnPrevPage" class="page-btn" disabled>이전</button>
+                            <div id="pageNumberBtns" style="display: flex; gap: 0.25rem;"></div>
+                            <button id="btnNextPage" class="page-btn" disabled>다음</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. MODAL DRAWER FOR FULL CONTEXT & DETAILS -->
+    <div id="contextModal" class="modal-backdrop">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </button>
+            <div class="modal-header">
+                <div id="modalWord" class="modal-word-title">
+                    <span>word</span>
+                    <span class="modal-pos-tag">NN</span>
+                </div>
+                <div id="modalLevelBadge">
+                    <span class="cefr-pill cefr-b2">B2</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-section">
+                    <span class="modal-label">한국어 번역 뜻</span>
+                    <div id="modalTranslation" class="modal-meaning-box">번역하는 중...</div>
+                </div>
+                <div class="modal-section">
+                    <span class="modal-label">책 속 문맥 예문 (Context)</span>
+                    <div id="modalContext" class="modal-context-box">...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. TOAST NOTIFICATION -->
+    <div id="toast" class="toast">
+        <svg class="toast-icon" viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+        <span id="toastText" class="toast-text">알림 메세지</span>
+    </div>
+
+    <script>
+        // Global State variables
+        let rawWordsData = [];
+        let filteredWordsData = [];
+        let globalStats = {
+            filename: '',
+            totalSentences: 0,
+            uniqueWords: 0
+        };
+        
+        let chartInstance = null;
+        let translationsCache = {}; // Client-side cache of translations
+        
+        // Pagination state
+        let currentPage = 1;
+        const rowsPerPage = 15;
+
+        // Active filters state
+        let activeLevels = new Set(['B1', 'B2', 'C1', 'C2', 'U']); // Default: Intermediate & above, & Unclassified
+        let activePos = new Set(['NN', 'VB', 'MD', 'JJ', 'RB', 'PRON', 'PREP', 'CONJ', 'ETC']); // Default: All core Parts of Speech
+        const posMap = {
+            'NN': '명사',
+            'VB': '동사',
+            'MD': '조동사',
+            'JJ': '형용사',
+            'RB': '부사',
+            'PRON': '대명사',
+            'PREP': '전치사',
+            'CONJ': '접속사',
+            'ETC': '기타'
+        };
+        let minFrequency = 1;
+        let maxFrequency = Infinity;
+        let searchQuery = '';
+
+        // Word Length filters state
+        let lengthFilterMode = 'all'; // 'all', 'expression', 'simple'
+        let lenExprMin = 3;
+        let lenExprMax = 5;
+        let lenExprOp1 = '<=';
+        let lenExprOp2 = '<=';
+        let lenSimpleOp = '==';
+        let lenSimpleVal = 4;
+
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        
+        const uploadContainer = document.getElementById('uploadContainer');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const dashboardContainer = document.getElementById('dashboardContainer');
+        
+        const loadingTitle = document.getElementById('loadingTitle');
+        const loadingText = document.getElementById('loadingText');
+        
+        const vocabTableBody = document.getElementById('vocabTableBody');
+        const searchInput = document.getElementById('searchInput');
+        
+        const minFreqRange = document.getElementById('minFreqRange');
+        const minFreqInput = document.getElementById('minFreqInput');
+        const maxFreqRange = document.getElementById('maxFreqRange');
+        const maxFreqInput = document.getElementById('maxFreqInput');
+        
+        const btnPrevPage = document.getElementById('btnPrevPage');
+        const btnNextPage = document.getElementById('btnNextPage');
+        const pageNumberBtns = document.getElementById('pageNumberBtns');
+        const pageInfo = document.getElementById('pageInfo');
+
+        const directTextArea = document.getElementById('directTextArea');
+        const btnClipboardPaste = document.getElementById('btnClipboardPaste');
+        const btnAnalyzeDirectText = document.getElementById('btnAnalyzeDirectText');
+        
+        const contextModal = document.getElementById('contextModal');
+
+        // Reset & Word Length controls DOM
+        const btnReset = document.getElementById('btnReset');
+        const lengthFilterModeSelect = document.getElementById('lengthFilterMode');
+        const lenExprContainer = document.getElementById('lenExprContainer');
+        const lenExprMinInput = document.getElementById('lenExprMin');
+        const lenExprMaxInput = document.getElementById('lenExprMax');
+        const lenExprOp1Select = document.getElementById('lenExprOp1');
+        const lenExprOp2Select = document.getElementById('lenExprOp2');
+        const lenSimpleContainer = document.getElementById('lenSimpleContainer');
+        const lenSimpleOpSelect = document.getElementById('lenSimpleOp');
+        const lenSimpleValInput = document.getElementById('lenSimpleVal');
+
+        // Theme Toggle controls DOM
+        const btnThemeToggle = document.getElementById('btnThemeToggle');
+        const themeIconSun = document.getElementById('themeIconSun');
+        const themeIconMoon = document.getElementById('themeIconMoon');
+
+        // -----------------------------------------------------------------------------
+        // File Drag and Drop Event Listeners
+        // -----------------------------------------------------------------------------
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', e => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', e => {
+            if (fileInput.files.length) {
+                handleFile(fileInput.files[0]);
+            }
+        });
+
+        // -----------------------------------------------------------------------------
+        // File Upload & Analysis Dispatcher
+        // -----------------------------------------------------------------------------
+        function handleFile(file) {
+            const fnLower = file.name.toLowerCase();
+            if (!(fnLower.endsWith('.epub') || fnLower.endsWith('.txt') || fnLower.endsWith('.pdf'))) {
+                showToast('EPUB, TXT 및 PDF 확장자 파일만 업로드할 수 있습니다.');
+                return;
+            }
+
+            // UI state change to Loading
+            uploadContainer.style.display = 'none';
+            loadingContainer.style.display = 'flex';
+            
+            // Custom interactive loading text updates
+            loadingTitle.innerText = "데이터 파싱 준비 중...";
+            loadingText.innerText = "업로드된 리소스 패키지의 유효성을 확인하고 있습니다.";
+            
+            const stateMessages = [
+                { time: 1000, title: "EPUB 파일 해제 중...", text: "도서 내부 HTML/XHTML 리소스를 안전하게 추출하고 있습니다." },
+                { time: 3000, title: "텍스트 구조화 분석 중...", text: "책 속 문장을 수집하고 자연어 문맥(Sentence Tokenizing)을 정밀 정제하고 있습니다." },
+                { time: 6000, title: "자연어 분석 진행 중...", text: "NLTK를 통해 각 품사 태깅(POS Tagging) 및 인명, 지명, 출판물 고유명사를 완벽하게 거르는 작업을 수행하고 있습니다." },
+                { time: 10000, title: "어휘 난이도 등급 분류 중...", text: "CEFR 기준에 따라 초급 어휘(A1, A2)와 중고급 어휘(B1~C2)를 맵핑하고 있습니다." }
+            ];
+
+            const timers = [];
+            stateMessages.forEach(msg => {
+                const timer = setTimeout(() => {
+                    loadingTitle.innerText = msg.title;
+                    loadingText.innerText = msg.text;
+                }, msg.time);
+                timers.push(timer);
+            });
+
+            // Perform backend API request
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/analyze', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                timers.forEach(t => clearTimeout(t)); // Clear loading text timers
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.error || '분석 중 실패했습니다.'); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                // Save analysis results to global state
+                rawWordsData = data.words;
+                globalStats.filename = data.filename;
+                globalStats.totalSentences = data.total_sentences;
+                globalStats.uniqueWords = data.unique_words_count;
+                
+                // Set default side cards info
+                document.getElementById('statFilename').innerText = globalStats.filename;
+                document.getElementById('statFilename').title = globalStats.filename;
+                document.getElementById('statSentences').innerText = globalStats.totalSentences.toLocaleString();
+                document.getElementById('statTotalWords').innerText = globalStats.uniqueWords.toLocaleString();
+                
+                // Show dashboard, hide loading
+                loadingContainer.style.display = 'none';
+                dashboardContainer.style.display = 'grid';
+                btnReset.style.display = 'flex';
+                document.querySelector('.container').classList.add('wide-layout');
+                
+                // Dynamic Range Config based on book max frequency
+                if (data.words && data.words.length > 0) {
+                    const maxCount = Math.max(...data.words.map(w => w.count));
+                    minFreqRange.max = maxCount;
+                    minFreqRange.value = 1;
+                    minFreqInput.max = maxCount;
+                    minFreqInput.value = 1;
+                    minFrequency = 1;
+                    
+                    maxFreqRange.max = maxCount;
+                    maxFreqRange.value = maxCount;
+                    maxFreqInput.max = maxCount;
+                    maxFreqInput.value = maxCount;
+                    maxFrequency = maxCount;
+                }
+                
+                // Initialize visuals (Chart & filters)
+                renderDistributionChart();
+                applyFilters(); 
+                
+                showToast("도서 분석이 성공적으로 완료되었습니다!");
+            })
+            .catch(err => {
+                timers.forEach(t => clearTimeout(t));
+                console.error(err);
+                uploadContainer.style.display = 'block';
+                loadingContainer.style.display = 'none';
+                showToast(err.message || '서버 연결에 실패했습니다. 코드를 다시 확인해 주세요.');
+            });
+        }
+
+        // -----------------------------------------------------------------------------
+        // 필터 제어 기구들의 실시간 동적 상한/하한 조율 함수 (Dynamic Boundary Auto-adjustment)
+        // -----------------------------------------------------------------------------
+        function updateFilterControlsLimits() {
+            if (!rawWordsData || rawWordsData.length === 0) return;
+
+            // 1. Get words matching active CEFR levels ONLY (baseline for frequency)
+            const levelFilteredWords = rawWordsData.filter(word => {
+                let levelMatch = false;
+                if (activeLevels.has('A1A2')) {
+                    if (word.level === 'A1' || word.level === 'A2') levelMatch = true;
+                }
+                if (activeLevels.has(word.level)) {
+                    levelMatch = true;
+                }
+                return levelMatch;
+            });
+
+            if (levelFilteredWords.length === 0) return;
+
+            // 2. Compute dynamic frequency min/max limits based on level baseline
+            const freqCounts = levelFilteredWords.map(w => w.count);
+            const dynamicMaxFreq = Math.max(...freqCounts);
+            
+            // Adjust slider/input upper bounds
+            minFreqRange.max = dynamicMaxFreq;
+            minFreqInput.max = dynamicMaxFreq;
+            maxFreqRange.max = dynamicMaxFreq;
+            maxFreqInput.max = dynamicMaxFreq;
+
+            // Strict Capping: prevent current values from exceeding new dynamic limits
+            if (minFrequency > dynamicMaxFreq) {
+                minFrequency = dynamicMaxFreq;
+                minFreqRange.value = minFrequency;
+                minFreqInput.value = minFrequency;
+            }
+            if (maxFrequency > dynamicMaxFreq || maxFrequency === Infinity) {
+                maxFrequency = dynamicMaxFreq;
+                maxFreqRange.value = maxFrequency;
+                maxFreqInput.value = maxFrequency;
+            }
+
+            // 3. Compute dynamic word length bounds based on active level + frequency state
+            const levelAndFreqWords = levelFilteredWords.filter(word => {
+                return word.count >= minFrequency && word.count <= maxFrequency;
+            });
+
+            const guideEl = document.getElementById('lenRangeGuide');
+            if (levelAndFreqWords.length > 0) {
+                const lengths = levelAndFreqWords.map(w => w.word.length);
+                const dynamicMaxLen = Math.max(...lengths);
+                const dynamicMinLen = Math.min(...lengths);
+
+                // Update length inputs min/max limits
+                lenExprMinInput.min = dynamicMinLen;
+                lenExprMinInput.max = dynamicMaxLen;
+                lenExprMaxInput.min = dynamicMinLen;
+                lenExprMaxInput.max = dynamicMaxLen;
+                lenSimpleValInput.min = dynamicMinLen;
+                lenSimpleValInput.max = dynamicMaxLen;
+
+                if (guideEl) {
+                    guideEl.innerText = `현재 조건 어휘 길이 범위: ${dynamicMinLen} ~ ${dynamicMaxLen} 글자`;
+                }
+
+                // Capping values to stay within the active dynamic length boundaries
+                if (lenExprMin < dynamicMinLen) {
+                    lenExprMin = dynamicMinLen;
+                    lenExprMinInput.value = lenExprMin;
+                }
+                if (lenExprMin > dynamicMaxLen) {
+                    lenExprMin = dynamicMaxLen;
+                    lenExprMinInput.value = lenExprMin;
+                }
+
+                if (lenExprMax < dynamicMinLen) {
+                    lenExprMax = dynamicMinLen;
+                    lenExprMaxInput.value = lenExprMax;
+                }
+                if (lenExprMax > dynamicMaxLen) {
+                    lenExprMax = dynamicMaxLen;
+                    lenExprMaxInput.value = lenExprMax;
+                }
+
+                if (lenSimpleVal < dynamicMinLen) {
+                    lenSimpleVal = dynamicMinLen;
+                    lenSimpleValInput.value = lenSimpleVal;
+                }
+                if (lenSimpleVal > dynamicMaxLen) {
+                    lenSimpleVal = dynamicMaxLen;
+                    lenSimpleValInput.value = lenSimpleVal;
+                }
+            } else {
+                if (guideEl) {
+                    guideEl.innerText = `현재 조건에 매칭되는 단어가 없습니다.`;
+                }
+            }
+        }
+
+        // -----------------------------------------------------------------------------
+        // Filtering & Processing Engine (Frontend side)
+        // -----------------------------------------------------------------------------
+        function applyFilters() {
+            // 실시간 상태 반영 제어 한계 동적 조율 우선 실행
+            updateFilterControlsLimits();
+
+            filteredWordsData = rawWordsData.filter(word => {
+                // 1. CEFR Level filter
+                let levelMatch = false;
+                if (activeLevels.has('A1A2')) {
+                    if (word.level === 'A1' || word.level === 'A2') levelMatch = true;
+                }
+                if (activeLevels.has(word.level)) {
+                    levelMatch = true;
+                }
+
+                // 1.5. POS(품사) filter
+                const posMatch = activePos.has(word.pos);
+                
+                // 2. Frequency filter
+                const freqMatch = word.count >= minFrequency && word.count <= maxFrequency;
+                
+                // 3. Search query filter
+                const searchMatch = searchQuery === '' || 
+                    word.word.toLowerCase().includes(searchQuery) ||
+                    (translationsCache[word.word] && translationsCache[word.word].toLowerCase().includes(searchQuery));
+                
+                // 4. Word Length (글자수) filter
+                let lengthMatch = true;
+                const len = word.word.length;
+                
+                if (lengthFilterMode === 'expression') {
+                    // Evaluate left: lenExprMin OP1 len
+                    let leftOk = false;
+                    if (lenExprOp1 === '<=') leftOk = (lenExprMin <= len);
+                    else if (lenExprOp1 === '<') leftOk = (lenExprMin < len);
+                    else if (lenExprOp1 === '=') leftOk = (lenExprMin === len);
+                    
+                    // Evaluate right: len OP2 lenExprMax
+                    let rightOk = false;
+                    if (lenExprOp2 === '<=') rightOk = (len <= lenExprMax);
+                    else if (lenExprOp2 === '<') rightOk = (len < lenExprMax);
+                    else if (lenExprOp2 === '=') rightOk = (len === lenExprMax);
+                    
+                    lengthMatch = leftOk && rightOk;
+                } else if (lengthFilterMode === 'simple') {
+                    if (lenSimpleOp === '==') lengthMatch = (len === lenSimpleVal);
+                    else if (lenSimpleOp === '>=') lengthMatch = (len >= lenSimpleVal);
+                    else if (lenSimpleOp === '<=') lengthMatch = (len <= lenSimpleVal);
+                    else if (lenSimpleOp === '>') lengthMatch = (len > lenSimpleVal);
+                    else if (lenSimpleOp === '<') lengthMatch = (len < lenSimpleVal);
+                }
+                
+                return levelMatch && posMatch && freqMatch && searchMatch && lengthMatch;
+            });
+
+            // Update stats
+            document.getElementById('statFilteredWords').innerText = filteredWordsData.length.toLocaleString();
+            
+            // Render table
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Filter Event binding - CEFR buttons
+        document.querySelectorAll('.cefr-badge-btn[data-level]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const level = btn.getAttribute('data-level');
+                if (activeLevels.has(level)) {
+                    if (activeLevels.size > 1) { // Prevent unselecting all
+                        activeLevels.delete(level);
+                        btn.classList.remove('active');
+                    } else {
+                        showToast("최소 한 개의 어휘 레벨을 선택하셔야 합니다.");
+                        return;
+                    }
+                } else {
+                    activeLevels.add(level);
+                    btn.classList.add('active');
+                }
+                applyFilters();
+            });
+        });
+
+        // Filter Event binding - POS buttons
+        document.querySelectorAll('.cefr-badge-btn[data-pos]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pos = btn.getAttribute('data-pos');
+                if (activePos.has(pos)) {
+                    if (activePos.size > 1) { // Prevent unselecting all
+                        activePos.delete(pos);
+                        btn.classList.remove('active');
+                    } else {
+                        showToast("최소 한 개의 품사를 선택하셔야 합니다.");
+                        return;
+                    }
+                } else {
+                    activePos.add(pos);
+                    btn.classList.add('active');
+                }
+                applyFilters();
+            });
+        });
+
+        // Filter Event binding - Frequency controls (Min & Max)
+        function updateMinFrequency(val) {
+            let value = parseInt(val);
+            if (isNaN(value) || value < 1) {
+                value = 1;
+            }
+            const maxLimit = parseInt(minFreqRange.max) || 10000;
+            if (value > maxLimit) {
+                value = maxLimit;
+            }
+
+            minFrequency = value;
+            minFreqRange.value = value;
+            minFreqInput.value = value;
+
+            // Adjust max value to avoid logical overlapping
+            if (minFrequency > maxFrequency) {
+                maxFrequency = minFrequency;
+                maxFreqRange.value = minFrequency;
+                maxFreqInput.value = minFrequency;
+            }
+            applyFilters();
+        }
+
+        function updateMaxFrequency(val) {
+            let value = parseInt(val);
+            const maxLimit = parseInt(maxFreqRange.max) || 10000;
+            if (isNaN(value)) {
+                value = maxLimit;
+            }
+            if (value < 1) {
+                value = 1;
+            }
+            if (value > maxLimit) {
+                value = maxLimit;
+            }
+
+            maxFrequency = value;
+            maxFreqRange.value = value;
+            maxFreqInput.value = value;
+
+            // Adjust min value to avoid logical overlapping
+            if (maxFrequency < minFrequency) {
+                minFrequency = maxFrequency;
+                minFreqRange.value = maxFrequency;
+                minFreqInput.value = maxFrequency;
+            }
+            applyFilters();
+        }
+
+        minFreqRange.addEventListener('input', e => {
+            updateMinFrequency(e.target.value);
+        });
+
+        minFreqInput.addEventListener('input', e => {
+            updateMinFrequency(e.target.value);
+        });
+
+        minFreqInput.addEventListener('blur', e => {
+            if (e.target.value === '') {
+                updateMinFrequency(1);
+            }
+        });
+
+        maxFreqRange.addEventListener('input', e => {
+            updateMaxFrequency(e.target.value);
+        });
+
+        maxFreqInput.addEventListener('input', e => {
+            updateMaxFrequency(e.target.value);
+        });
+
+        maxFreqInput.addEventListener('blur', e => {
+            if (e.target.value === '') {
+                const maxLimit = parseInt(maxFreqRange.max) || 10000;
+                updateMaxFrequency(maxLimit);
+            }
+        });
+
+        // Filter Event binding - Search input
+        searchInput.addEventListener('input', e => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            applyFilters();
+        });
+
+        // -----------------------------------------------------------------------------
+        // UI Renderers (Table and Chart)
+        // -----------------------------------------------------------------------------
+        function renderTable() {
+            vocabTableBody.innerHTML = '';
+            
+            if (filteredWordsData.length === 0) {
+                vocabTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 3rem;">선택된 조건에 매칭되는 단어가 없습니다. 필터를 완화해 보세요.</td></tr>`;
+                pageInfo.innerText = "단어 0개 중 0-0 표시";
+                btnPrevPage.disabled = true;
+                btnNextPage.disabled = true;
+                pageNumberBtns.innerHTML = '';
+                return;
+            }
+
+            const totalRows = filteredWordsData.length;
+            const totalPages = Math.ceil(totalRows / rowsPerPage);
+            
+            // Adjust current page if boundary exceeded
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+            
+            const startIdx = (currentPage - 1) * rowsPerPage;
+            const endIdx = Math.min(startIdx + rowsPerPage, totalRows);
+            
+            const pageData = filteredWordsData.slice(startIdx, endIdx);
+            
+            pageData.forEach(item => {
+                const tr = document.createElement('tr');
+                
+                // Word column with pos tag
+                const tdWord = document.createElement('td');
+                tdWord.className = 'col-word';
+                const posKorean = posMap[item.pos] || '기타';
+                tdWord.innerHTML = `${item.word} <span class="col-pos">${posKorean}</span>`;
+                
+                // CEFR column with pill
+                const tdCEFR = document.createElement('td');
+                tdCEFR.style.textAlign = 'center';
+                const cefrLower = item.level.toLowerCase();
+                tdCEFR.innerHTML = `<span class="cefr-pill cefr-${cefrLower}">${item.level}</span>`;
+                
+                // Frequency column
+                const tdFreq = document.createElement('td');
+                tdFreq.className = 'col-count';
+                tdFreq.style.textAlign = 'center';
+                tdFreq.innerText = item.count.toLocaleString();
+                
+                // Korean translation column (interactive with dynamic backend fetching)
+                const tdTrans = document.createElement('td');
+                tdTrans.className = 'translation-cell';
+                if (translationsCache[item.word]) {
+                    tdTrans.innerHTML = `<span class="translation-text">${translationsCache[item.word]}</span>`;
+                } else {
+                    const btn = document.createElement('button');
+                    btn.className = 'translate-btn';
+                    btn.innerText = '번역';
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        fetchTranslation(item.word, tdTrans);
+                    };
+                    tdTrans.appendChild(btn);
+                }
+                
+                // Context sentence column
+                const tdContext = document.createElement('td');
+                tdContext.className = 'context-cell';
+                tdContext.innerText = item.context;
+                tdContext.title = "더블클릭하거나 상세 보기를 하려면 클릭해 예문을 확인하세요.";
+                
+                // Row click event -> trigger full context modal drawer
+                tr.style.cursor = 'pointer';
+                tr.onclick = () => {
+                    openModal(item);
+                };
+                
+                tr.appendChild(tdWord);
+                tr.appendChild(tdCEFR);
+                tr.appendChild(tdFreq);
+                tr.appendChild(tdTrans);
+                tr.appendChild(tdContext);
+                
+                vocabTableBody.appendChild(tr);
+            });
+
+            // Update pagination UI
+            pageInfo.innerText = `단어 ${totalRows.toLocaleString()}개 중 ${startIdx + 1}-${endIdx} 표시`;
+            btnPrevPage.disabled = (currentPage === 1);
+            btnNextPage.disabled = (currentPage === totalPages);
+            
+            renderPaginationButtons(totalPages);
+        }
+
+        function renderPaginationButtons(totalPages) {
+            pageNumberBtns.innerHTML = '';
+            
+            // Limit page buttons visible (show current, -2, +2 pages)
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (startPage > 1) {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn';
+                btn.innerText = '1';
+                btn.onclick = () => { currentPage = 1; renderTable(); };
+                pageNumberBtns.appendChild(btn);
+                
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.innerText = '...';
+                    dots.style.color = 'var(--text-muted)';
+                    dots.style.alignSelf = 'center';
+                    pageNumberBtns.appendChild(dots);
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                btn.innerText = i;
+                btn.onclick = () => { currentPage = i; renderTable(); };
+                pageNumberBtns.appendChild(btn);
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.innerText = '...';
+                    dots.style.color = 'var(--text-muted)';
+                    dots.style.alignSelf = 'center';
+                    pageNumberBtns.appendChild(dots);
+                }
+                
+                const btn = document.createElement('button');
+                btn.className = 'page-btn';
+                btn.innerText = totalPages;
+                btn.onclick = () => { currentPage = totalPages; renderTable(); };
+                pageNumberBtns.appendChild(btn);
+            }
+        }
+
+        btnPrevPage.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        };
+
+        btnNextPage.onclick = () => {
+            const totalPages = Math.ceil(filteredWordsData.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        };
+
+        // -----------------------------------------------------------------------------
+        // Chart.js 어휘 난이도(CEFR) & 품사(POS) 통계 차트 렌더링
+        // -----------------------------------------------------------------------------
+        let currentChartType = 'level'; // 'level' or 'pos'
+
+        function renderDistributionChart() {
+            if (!rawWordsData || rawWordsData.length === 0) return;
+
+            let labels = [];
+            let dataValues = [];
+            let colors = [];
+
+            if (currentChartType === 'level') {
+                // 어휘 레벨별 (CEFR Level) 집계
+                const counts = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0, U: 0 };
+                rawWordsData.forEach(w => {
+                    if (counts[w.level] !== undefined) {
+                        counts[w.level]++;
+                    }
+                });
+
+                labels = ['A1 (초급)', 'A2 (초급)', 'B1 (중급)', 'B2 (중상급)', 'C1 (고급)', 'C2 (원어민)', '미분류 (U)'];
+                dataValues = [counts.A1, counts.A2, counts.B1, counts.B2, counts.C1, counts.C2, counts.U];
+                colors = ['#8b949e', '#6e7681', '#3fb950', '#58a6ff', '#bc8cff', '#ff7b72', '#d29922'];
+                const cardTitleEl = document.getElementById('chartCardTitle');
+                if (cardTitleEl) cardTitleEl.innerText = 'CEFR 어휘 분포';
+            } else {
+                // 품사별 (Parts of Speech) 집계 (NN, VB, MD, JJ, RB, PRON, PREP, CONJ, ETC)
+                const counts = { NN: 0, VB: 0, MD: 0, JJ: 0, RB: 0, PRON: 0, PREP: 0, CONJ: 0, ETC: 0 };
+                rawWordsData.forEach(w => {
+                    const pos = w.pos;
+                    if (counts[pos] !== undefined) {
+                        counts[pos]++;
+                    } else {
+                        counts.ETC++;
+                    }
+                });
+
+                labels = ['명사', '동사', '조동사', '형용사', '부사', '대명사', '전치사', '접속사', '기타'];
+                dataValues = [counts.NN, counts.VB, counts.MD, counts.JJ, counts.RB, counts.PRON, counts.PREP, counts.CONJ, counts.ETC];
+                colors = ['#58a6ff', '#3fb950', '#00bcd4', '#bc8cff', '#d29922', '#e91e63', '#ff9800', '#009688', '#ff7b72'];
+                const cardTitleEl = document.getElementById('chartCardTitle');
+                if (cardTitleEl) cardTitleEl.innerText = '품사별 어휘 분포';
+            }
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const ctx = document.getElementById('difficultyChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--chart-border').trim() || '#1f242c'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // We use side badges or interactive hover as visual legends
+                        },
+                        tooltip: {
+                            backgroundColor: '#1f242c',
+                            titleColor: '#f0f6fc',
+                            bodyColor: '#c9d1d9',
+                            borderColor: 'rgba(240, 246, 252, 0.1)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const value = context.raw || 0;
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return ` ${context.label}: ${value}개 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // 차트 탭 제어 이벤트 바인딩
+        document.getElementById('tabChartLevel').addEventListener('click', () => {
+            if (currentChartType === 'level') return;
+            currentChartType = 'level';
+            
+            // 탭 스타일 스위칭
+            document.getElementById('tabChartLevel').style.background = 'var(--primary-gradient)';
+            document.getElementById('tabChartLevel').style.color = '#fff';
+            document.getElementById('tabChartPos').style.background = 'transparent';
+            document.getElementById('tabChartPos').style.color = 'var(--text-muted)';
+            
+            renderDistributionChart();
+        });
+
+        document.getElementById('tabChartPos').addEventListener('click', () => {
+            if (currentChartType === 'pos') return;
+            currentChartType = 'pos';
+            
+            // 탭 스타일 스위칭
+            document.getElementById('tabChartPos').style.background = 'var(--primary-gradient)';
+            document.getElementById('tabChartPos').style.color = '#fff';
+            document.getElementById('tabChartLevel').style.background = 'transparent';
+            document.getElementById('tabChartLevel').style.color = 'var(--text-muted)';
+            
+            renderDistributionChart();
+        });
+
+        // -----------------------------------------------------------------------------
+        // Translation Async Fetcher
+        // -----------------------------------------------------------------------------
+        function fetchTranslation(word, containerElement, callback) {
+            // Show a tiny spinner in-cell
+            containerElement.innerHTML = `<span class="mini-spinner"></span><span style="font-size:0.8rem; color:var(--text-muted);">번역 중...</span>`;
+            
+            fetch(`/api/translate?word=${encodeURIComponent(word)}`)
+            .then(res => res.json())
+            .then(data => {
+                const meaning = data.translation || "뜻을 찾지 못함";
+                translationsCache[word] = meaning;
+                
+                // Render text back to cell
+                containerElement.innerHTML = `<span class="translation-text">${meaning}</span>`;
+                
+                if (callback) callback(meaning);
+            })
+            .catch(err => {
+                console.error(err);
+                containerElement.innerHTML = '';
+                const btn = document.createElement('button');
+                btn.className = 'translate-btn';
+                btn.innerText = '실패-재시도';
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    fetchTranslation(word, containerElement, callback);
+                };
+                containerElement.appendChild(btn);
+                if (callback) callback("");
+            });
+        }
+
+        // Translate All Visible utility
+        document.getElementById('btnTranslateVisible').addEventListener('click', () => {
+            const cells = vocabTableBody.querySelectorAll('.translation-cell');
+            let count = 0;
+            cells.forEach(cell => {
+                const btn = cell.querySelector('.translate-btn');
+                if (btn) {
+                    count++;
+                    btn.click();
+                }
+            });
+            if (count > 0) {
+                showToast(`현재 화면에 노출된 ${count}개 어휘의 한글 번역 요청을 전송했습니다.`);
+            } else {
+                showToast('현재 페이지의 어휘는 이미 모두 번역되어 있습니다.');
+            }
+        });
+
+        // -----------------------------------------------------------------------------
+        // Modal Event Handling (Expanded Context)
+        // -----------------------------------------------------------------------------
+        function openModal(item) {
+            document.getElementById('modalWord').querySelector('span:first-child').innerText = item.word;
+            const posKorean = posMap[item.pos] || '기타';
+            document.getElementById('modalWord').querySelector('.modal-pos-tag').innerText = posKorean;
+            
+            const badgeContainer = document.getElementById('modalLevelBadge');
+            const levelLower = item.level.toLowerCase();
+            badgeContainer.innerHTML = `<span class="cefr-pill cefr-${levelLower}">${item.level}</span>`;
+            
+            // Highlight target word in context sentence
+            const contextBox = document.getElementById('modalContext');
+            const regex = new RegExp(`\\b(${item.word}|${item.word}s|${item.word}ed|${item.word}ing)\\b`, 'gi');
+            
+            // Format sentence with highlighter span
+            let highlightedSentence = item.context.replace(regex, `<span class="context-highlight">$1</span>`);
+            contextBox.innerHTML = highlightedSentence;
+            
+            // Handle meaning in modal
+            const meaningBox = document.getElementById('modalTranslation');
+            if (translationsCache[item.word]) {
+                meaningBox.innerText = translationsCache[item.word];
+            } else {
+                meaningBox.innerHTML = `<span class="mini-spinner"></span> 뜻을 불러오는 중...`;
+                
+                // Fetch translation dynamically
+                fetch(`/api/translate?word=${encodeURIComponent(item.word)}`)
+                .then(res => res.json())
+                .then(data => {
+                    const trans = data.translation || "뜻 없음";
+                    translationsCache[item.word] = trans;
+                    meaningBox.innerText = trans;
+                    
+                    // Also refresh the specific table cell if visible
+                    renderTable();
+                })
+                .catch(() => {
+                    meaningBox.innerText = "번역 에러";
+                });
+            }
+            
+            contextModal.classList.add('show');
+        }
+
+        function closeModal() {
+            contextModal.classList.remove('show');
+        }
+
+        // Close modal when clicking outside contents
+        contextModal.addEventListener('click', e => {
+            if (e.target === contextModal) {
+                closeModal();
+            }
+        });
+
+        // Close on ESC key
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && contextModal.classList.contains('show')) {
+                closeModal();
+            }
+        });
+
+        // -----------------------------------------------------------------------------
+        // Export Operations (Client-side generation)
+        // -----------------------------------------------------------------------------
+        
+        // 1. Export CSV
+        document.getElementById('btnExportCSV').addEventListener('click', () => {
+            if (!filteredWordsData.length) {
+                showToast("내보낼 단어가 없습니다.");
+                return;
+            }
+            
+            // CSV structure: Word, POS, CEFR Level, Frequency, Meaning, Context
+            let csvContent = "\uFEFF"; // UTF-8 BOM for Excel Korean compatibility
+            csvContent += "단어 (원형),품사,어휘 등급 (CEFR),책 속 등장 빈도수,한국어 번역 뜻,책 속 사용 예문\n";
+            
+            filteredWordsData.forEach(item => {
+                const meaning = translationsCache[item.word] || '';
+                
+                // Double quote values and escape inner quotes to avoid structure corruption
+                const word = `"${item.word.replace(/"/g, '""')}"`;
+                const posKorean = posMap[item.pos] || '기타';
+                const pos = `"${posKorean.replace(/"/g, '""')}"`;
+                const level = `"${item.level.replace(/"/g, '""')}"`;
+                const freq = item.count;
+                const trans = `"${meaning.replace(/"/g, '""')}"`;
+                const context = `"${item.context.replace(/"/g, '""')}"`;
+                
+                csvContent += `${word},${pos},${level},${freq},${trans},${context}\n`;
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            // Filename matches ebook name
+            const origName = globalStats.filename.replace('.epub', '');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${origName}_LingoExtractor_Vocabulary.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast("CSV 파일이 다운로드 되었습니다!");
+        });
+
+        // 2. Export Anki TXT (Tab-separated)
+        document.getElementById('btnExportAnki').addEventListener('click', () => {
+            if (!filteredWordsData.length) {
+                showToast("내보낼 단어가 없습니다.");
+                return;
+            }
+            
+            // Anki format: Front (Word + POS + CEFR) <tab> Back (Meaning + Context with highlighted word)
+            let txtContent = "";
+            
+            filteredWordsData.forEach(item => {
+                const meaning = translationsCache[item.word] || '뜻 확인 필요';
+                
+                // Front styling
+                const posKorean = posMap[item.pos] || '기타';
+                const front = `${item.word} [${posKorean}] (${item.level})`;
+                
+                // Back styling (HTML elements allowed in Anki card back fields!)
+                // Highlight the word inside the sentence in bold/red
+                const regex = new RegExp(`\\b(${item.word}|${item.word}s|${item.word}ed|${item.word}ing)\\b`, 'gi');
+                const boldContext = item.context.replace(regex, `<b><font color="#ff7b72">$1</font></b>`);
+                
+                const back = `뜻: ${meaning}<br><br><i>Context: "${boldContext}"</i>`;
+                
+                txtContent += `${front}\t${back}\n`;
+            });
+            
+            const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            const origName = globalStats.filename.replace('.epub', '');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${origName}_Anki_Deck.txt`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast("Anki 단어장 가져오기용 TXT 파일이 완성되었습니다!");
+        });
+
+        // -----------------------------------------------------------------------------
+        // 텍스트 직접 입력 및 클립보드 붙여넣기 이벤트 리스너 바인딩
+        // -----------------------------------------------------------------------------
+        btnClipboardPaste.addEventListener('click', async () => {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text && text.trim()) {
+                        directTextArea.value = text;
+                        showToast('클립보드 텍스트를 성공적으로 붙여넣었습니다.');
+                    } else {
+                        showToast('클립보드가 비어있거나 텍스트 형식이 아닙니다.');
+                    }
+                } else {
+                    showToast('이 브라우저에서는 클립보드 자동 읽기를 지원하지 않습니다. Ctrl+V로 붙여넣어 주세요.');
+                }
+            } catch (err) {
+                console.error('클립보드 읽기 오류:', err);
+                showToast('클립보드 접근 권한을 확인하시거나 Ctrl+V 단축키를 사용해 직접 붙여넣어 주세요.');
+            }
+        });
+
+        btnAnalyzeDirectText.addEventListener('click', () => {
+            const textVal = directTextArea.value.trim();
+            if (!textVal) {
+                showToast('분석할 영어 텍스트를 입력창에 적거나 클립보드에서 붙여넣어 주세요.');
+                return;
+            }
+
+            // UI state change to Loading
+            uploadContainer.style.display = 'none';
+            loadingContainer.style.display = 'flex';
+            
+            loadingTitle.innerText = "텍스트 분석 준비 중...";
+            loadingText.innerText = "입력한 텍스트 데이터의 유효성을 검증하고 있습니다.";
+            
+            const stateMessages = [
+                { time: 1000, title: "문장 구조화 분석 중...", text: "문맥 정제와 문장 분리(Sentence Tokenizing)를 수행하고 있습니다." },
+                { time: 3000, title: "자연어 처리 및 형태소 태깅 중...", text: "NLTK 기반 품사 분석과 고유명사 자동 제거 연산을 진행 중입니다." },
+                { time: 5000, title: "어휘 수준 분류 중...", text: "CEFR 기준에 어휘 난이도 매핑 및 한국어 단어 사전을 매칭하고 있습니다." }
+            ];
+
+            const timers = [];
+            stateMessages.forEach(msg => {
+                const timer = setTimeout(() => {
+                    loadingTitle.innerText = msg.title;
+                    loadingText.innerText = msg.text;
+                }, msg.time);
+                timers.push(timer);
+            });
+
+            // Post text JSON data
+            fetch('/api/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: textVal,
+                    filename: '직접 입력한 텍스트'
+                })
+            })
+            .then(res => {
+                timers.forEach(t => clearTimeout(t)); // Clear loading timers
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.error || '분석 중 실패했습니다.'); });
+                }
+                return res.json();
+            })
+            .then(data => {
+                // Save analysis results to global state
+                rawWordsData = data.words;
+                globalStats.filename = data.filename;
+                globalStats.totalSentences = data.total_sentences;
+                globalStats.uniqueWords = data.unique_words_count;
+                
+                // Set default side cards info
+                document.getElementById('statFilename').innerText = globalStats.filename;
+                document.getElementById('statFilename').title = globalStats.filename;
+                document.getElementById('statSentences').innerText = globalStats.totalSentences.toLocaleString();
+                document.getElementById('statTotalWords').innerText = globalStats.uniqueWords.toLocaleString();
+                
+                // Show dashboard, hide loading
+                loadingContainer.style.display = 'none';
+                dashboardContainer.style.display = 'grid';
+                btnReset.style.display = 'flex';
+                document.querySelector('.container').classList.add('wide-layout');
+                
+                // Dynamic Range Config based on max frequency
+                if (data.words && data.words.length > 0) {
+                    const maxCount = Math.max(...data.words.map(w => w.count));
+                    minFreqRange.max = maxCount;
+                    minFreqRange.value = 1;
+                    minFreqInput.max = maxCount;
+                    minFreqInput.value = 1;
+                    minFrequency = 1;
+                    
+                    maxFreqRange.max = maxCount;
+                    maxFreqRange.value = maxCount;
+                    maxFreqInput.max = maxCount;
+                    maxFreqInput.value = maxCount;
+                    maxFrequency = maxCount;
+                }
+                
+                // Initialize visuals
+                renderDistributionChart();
+                applyFilters(); 
+                
+                showToast("텍스트 분석이 완벽히 완료되었습니다!");
+            })
+            .catch(err => {
+                timers.forEach(t => clearTimeout(t));
+                console.error(err);
+                uploadContainer.style.display = 'block';
+                loadingContainer.style.display = 'none';
+                showToast(err.message || '텍스트 분석 처리에 실패했습니다.');
+            });
+        });
+
+        // -----------------------------------------------------------------------------
+        // 처음으로 돌아가기 (Reset) 및 글자 수 필터 이벤트 리스너 바인딩
+        // -----------------------------------------------------------------------------
+        btnReset.addEventListener('click', () => {
+            // Reset states
+            rawWordsData = [];
+            filteredWordsData = [];
+            translationsCache = {};
+            activePos = new Set(['NN', 'VB', 'MD', 'JJ', 'RB', 'PRON', 'PREP', 'CONJ', 'ETC']);
+            document.querySelectorAll('#posFilterContainer .cefr-badge-btn').forEach(btn => btn.classList.add('active'));
+            
+            // Clear inputs
+            directTextArea.value = '';
+            searchInput.value = '';
+            searchQuery = '';
+            
+            // Reset file input
+            fileInput.value = '';
+            
+            // Reset range config
+            minFrequency = 1;
+            maxFrequency = Infinity;
+            
+            // Reset length filter inputs
+            lengthFilterModeSelect.value = 'all';
+            lengthFilterMode = 'all';
+            lenExprContainer.style.display = 'none';
+            lenSimpleContainer.style.display = 'none';
+
+            // Reset chart type to default (level)
+            currentChartType = 'level';
+            const tabLevel = document.getElementById('tabChartLevel');
+            const tabPos = document.getElementById('tabChartPos');
+            if (tabLevel && tabPos) {
+                tabLevel.style.background = 'var(--primary-gradient)';
+                tabLevel.style.color = '#fff';
+                tabPos.style.background = 'transparent';
+                tabPos.style.color = 'var(--text-muted)';
+            }
+            
+            // UI visibility switch
+            dashboardContainer.style.display = 'none';
+            uploadContainer.style.display = 'block';
+            btnReset.style.display = 'none';
+            document.querySelector('.container').classList.remove('wide-layout');
+            
+            showToast("성공적으로 초기화되었습니다. 새로운 파일 분석을 진행해 주세요!");
+        });
+
+        lengthFilterModeSelect.addEventListener('change', (e) => {
+            lengthFilterMode = e.target.value;
+            if (lengthFilterMode === 'all') {
+                lenExprContainer.style.display = 'none';
+                lenSimpleContainer.style.display = 'none';
+            } else if (lengthFilterMode === 'expression') {
+                lenExprContainer.style.display = 'flex';
+                lenSimpleContainer.style.display = 'none';
+            } else if (lengthFilterMode === 'simple') {
+                lenExprContainer.style.display = 'none';
+                lenSimpleContainer.style.display = 'flex';
+            }
+            applyFilters();
+        });
+
+        // Continuous Expression Filters Bindings
+        lenExprMinInput.addEventListener('input', (e) => {
+            lenExprMin = parseInt(e.target.value) || 1;
+            applyFilters();
+        });
+        lenExprMaxInput.addEventListener('input', (e) => {
+            lenExprMax = parseInt(e.target.value) || 1;
+            applyFilters();
+        });
+        lenExprOp1Select.addEventListener('change', (e) => {
+            lenExprOp1 = e.target.value;
+            applyFilters();
+        });
+        lenExprOp2Select.addEventListener('change', (e) => {
+            lenExprOp2 = e.target.value;
+            applyFilters();
+        });
+
+        // Simple Math Operator Filters Bindings
+        lenSimpleOpSelect.addEventListener('change', (e) => {
+            lenSimpleOp = e.target.value;
+            applyFilters();
+        });
+        lenSimpleValInput.addEventListener('input', (e) => {
+            lenSimpleVal = parseInt(e.target.value) || 1;
+            applyFilters();
+        });
+
+        // -----------------------------------------------------------------------------
+        // 다크/라이트 테마 전환(Theme Toggle) 및 차트 리드로우 리스너 바인딩
+        // -----------------------------------------------------------------------------
+        let currentTheme = 'light';
+
+        // Apply light mode defaults strictly for DOM icons on startup
+        themeIconSun.style.display = 'none';
+        themeIconMoon.style.display = 'flex';
+        themeIconMoon.style.fill = '#0969da';
+
+        btnThemeToggle.addEventListener('click', () => {
+            if (currentTheme === 'light') {
+                document.documentElement.removeAttribute('data-theme');
+                currentTheme = 'dark';
+                themeIconSun.style.display = 'flex';
+                themeIconMoon.style.display = 'none';
+                themeIconSun.style.fill = '#f0f6fc';
+                showToast('다크 Slate 테마로 변경되었습니다.');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                currentTheme = 'light';
+                themeIconSun.style.display = 'none';
+                themeIconMoon.style.display = 'flex';
+                themeIconMoon.style.fill = '#0969da';
+                showToast('라이트 글래스모피즘 테마로 복귀되었습니다.');
+            }
+            
+            // Re-render chart to beautifully match the theme transition gap line
+            if (rawWordsData && rawWordsData.length > 0) {
+                renderDistributionChart();
+            }
+        });
+
+        // -----------------------------------------------------------------------------
+        // Quick Toast Notifications
+        // -----------------------------------------------------------------------------
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastText').innerText = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
