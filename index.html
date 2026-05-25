@@ -1488,6 +1488,7 @@
         };
         
         let chartInstance = null;
+        let currentChartType = 'level'; // 'level' or 'pos'
         let currentPage = 1;
         const rowsPerPage = 15;
 
@@ -2147,7 +2148,7 @@
         // -----------------------------------------------------------------------------
         // UI Binders (CEFR and POS Badge button click listeners)
         // -----------------------------------------------------------------------------
-        document.querySelectorAll('.cefr-filter-container[id!="posFilterContainer"] .cefr-badge-btn').forEach(btn => {
+        document.querySelectorAll('.cefr-filter-container:not(#posFilterContainer) .cefr-badge-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const lvl = btn.getAttribute('data-level');
                 if (activeLevels.has(lvl)) {
@@ -2409,7 +2410,6 @@
         // -----------------------------------------------------------------------------
         // Chart.js 어휘 난이도(CEFR) & 품사(POS) 통계 차트 렌더링
         // -----------------------------------------------------------------------------
-        let currentChartType = 'level'; // 'level' or 'pos'
 
         function renderDistributionChart() {
             if (!rawWordsData || rawWordsData.length === 0) return;
